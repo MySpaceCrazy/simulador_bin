@@ -43,7 +43,11 @@ if arquivo:
         df_base = pd.read_excel(arquivo, sheet_name="base_item_pacotes")
         df_posicoes_prod = pd.read_excel(arquivo, sheet_name="info_posicao_produtos")
 
-        # --- Validações ---
+        # 🔍 Validação rápida dos nomes das colunas
+        st.write("📋 Colunas base_item_pacotes:", df_base.columns.tolist())
+        st.write("📋 Colunas info_posicao_produtos:", df_posicoes_prod.columns.tolist())
+
+        # --- Validações obrigatórias ---
         colunas_obrigatorias_base = ["Produto", "Qtd.solicitada total", "Recebedor mercadoria", "Peso", "UM peso", "Volume", "UM volume", "Área de atividade"]
         colunas_obrigatorias_pos = ["Posição no depósito", "Tipo de depósito", "Área armazmto", "Produto"]
 
@@ -75,14 +79,26 @@ if arquivo:
         df_posicao_bin = pd.read_sql("SELECT * FROM info_posicao_bin", conn)
         conn.close()
 
-        # --- Junta dados ---
-        df_posicoes_prod = df_posicoes_prod.rename(columns={"Posição no depósito": "Posicao", "Tipo de depósito": "Tipo_de_depósito"})
-        df_posicao_bin = df_posicao_bin.rename(columns={"Posicao": "Posicao", "Tipo_de_deposito": "Tipo_de_depósito"})
+        # 🔍 Validação rápida dos nomes das tabelas do banco
+        st.write("📋 Colunas info_posicao_bin:", df_posicao_bin.columns.tolist())
+        st.write("📋 Colunas info_tipo_bin:", df_tipo_bin.columns.tolist())
 
+        # --- Renomeia colunas para fazer o join corretamente ---
+        df_posicoes_prod = df_posicoes_prod.rename(columns={
+            "Posição no depósito": "Posicao",
+            "Tipo de depósito": "Tipo_de_depósito"
+        })
+
+        df_posicao_bin = df_posicao_bin.rename(columns={
+            "Posição": "Posicao",  # ajuste conforme nome no CSV/banco
+            "Tipo_de_deposito": "Tipo_de_depósito"
+        })
+
+        # --- Realiza os joins ---
         df_posicoes_prod = df_posicoes_prod.merge(df_posicao_bin, on=["Posicao", "Tipo_de_depósito"], how="left")
         df_posicoes_prod = df_posicoes_prod.merge(df_tipo_bin, on="Tipo_Bin", how="left")
 
-        # --- Calcula bins ---
+        # --- Cálculo das bins ---
         resultado = []
         for _, row in df_base.iterrows():
             produto = row["Produto"]
@@ -106,8 +122,8 @@ if arquivo:
                 continue
 
             for _, pos in posicoes.iterrows():
-                posicao = pos["Posicao"]
-                tipo_bin = pos["Tipo_Bin"]
+                posicao = pos.get("Posicao", "N/A")
+                tipo_bin = pos.get("Tipo_Bin", "N/A")
                 volume_max = pos.get("Volume_max_L", 1)
 
                 if pd.isna(volume_max) or volume_max <= 0:
@@ -124,7 +140,7 @@ if arquivo:
                     continue
 
                 volume_total = volume_unitario * qtd
-                bins_necessarias = int(-(-volume_total // volume_max))
+                bins_necessarias = int(-(-volume_total // volume_max))  # Arredonda para cima
                 bins_disponiveis = int(pos.get("Quantidade_Bin", 0))
                 diferenca = bins_disponiveis - bins_necessarias
 
