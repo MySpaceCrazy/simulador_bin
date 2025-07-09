@@ -97,7 +97,7 @@ if arquivo:
         # --- Converte vírgulas em ponto e transforma em numérico ---
         df_tipo_bin["Volume_max_L"] = df_tipo_bin["Volume_max_L"].astype(str).str.replace(",", ".", regex=False)
         df_tipo_bin["Volume_max_L"] = pd.to_numeric(df_tipo_bin["Volume_max_L"], errors="coerce").fillna(0)
-
+        print(df_tipo_bin)
         # --- Garante que colunas estejam no mesmo tipo ---
         df_posicao_bin["Tipo"] = df_posicao_bin["Tipo"].astype(str).str.strip()
         df_tipo_bin["Tipo"] = df_tipo_bin["Tipo"].astype(str).str.strip()
