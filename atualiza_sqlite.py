@@ -1,6 +1,15 @@
+import streamlit as st
+import subprocess
 import pandas as pd
 import sqlite3
 import os
+
+# --- Atualiza o banco SQLite com os CSVs ---
+try:
+    subprocess.run(["python", "atualiza_sqlite.py"], check=True)
+except Exception as e:
+    st.error(f"Erro ao atualizar banco de dados: {e}")
+# --- Após atualizar, segue o restante do app normalmente ---
 
 # Pasta com os arquivos CSV
 PASTA_CSV = "arquivos"
