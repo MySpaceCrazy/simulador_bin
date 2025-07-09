@@ -90,13 +90,13 @@ if arquivo:
             "Qtd._Caixas_BIN_ABASTECIMENTO": "Quantidade_Bin"
         })
         df_tipo_bin = df_tipo_bin.rename(columns={
-            "Tipo": "Tipo_Bin",
+            "Tipo": "Tipo",  # mantém como "Tipo"
             "Valume_(L)": "Volume_max_L"  # corrigindo erro de digitação
         })
 
         # --- Realiza os joins ---
         df_posicoes_prod = df_posicoes_prod.merge(df_posicao_bin, on=["Posicao", "Tipo_de_depósito"], how="left")
-        df_posicoes_prod = df_posicoes_prod.merge(df_tipo_bin, on="Tipo_Bin", how="left")
+        df_posicoes_prod = df_posicoes_prod.merge(df_tipo_bin, on="Tipo", how="left")
 
         # --- Cálculo das bins ---
         resultado = []
@@ -123,7 +123,7 @@ if arquivo:
 
             for _, pos in posicoes.iterrows():
                 posicao = pos.get("Posicao", "N/A")
-                tipo_bin = pos.get("Tipo_Bin", "N/A")
+                tipo_bin = pos.get("Tipo", "N/A")
                 volume_max = pos.get("Volume_max_L", 1)
 
                 if pd.isna(volume_max) or volume_max <= 0:
