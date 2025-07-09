@@ -43,11 +43,9 @@ if arquivo:
         df_base = pd.read_excel(arquivo, sheet_name="base_item_pacotes")
         df_posicoes_prod = pd.read_excel(arquivo, sheet_name="info_posicao_produtos")
 
-        # 🔍 Validação rápida dos nomes das colunas
         st.write("📋 Colunas base_item_pacotes:", df_base.columns.tolist())
         st.write("📋 Colunas info_posicao_produtos:", df_posicoes_prod.columns.tolist())
 
-        # --- Validações obrigatórias ---
         colunas_obrigatorias_base = ["Produto", "Qtd.solicitada total", "Recebedor mercadoria", "Peso", "UM peso", "Volume", "UM volume", "Área de atividade"]
         colunas_obrigatorias_pos = ["Posição no depósito", "Tipo de depósito", "Área armazmto", "Produto"]
 
@@ -61,7 +59,6 @@ if arquivo:
                 st.error(f"Coluna obrigatória ausente na info_posicao_produtos: {col}")
                 st.stop()
 
-        # --- Ajustes e normalizações ---
         df_base["Recebedor mercadoria"] = df_base["Recebedor mercadoria"].astype(str).str.zfill(5)
         df_base["Tipo_de_depósito"] = df_base["Área de atividade"].astype(str).str[:2].str.zfill(4)
         df_base["Peso"] = pd.to_numeric(df_base["Peso"], errors="coerce").fillna(0)
@@ -79,19 +76,22 @@ if arquivo:
         df_posicao_bin = pd.read_sql("SELECT * FROM info_posicao_bin", conn)
         conn.close()
 
-        # 🔍 Validação rápida dos nomes das tabelas do banco
         st.write("📋 Colunas info_posicao_bin:", df_posicao_bin.columns.tolist())
         st.write("📋 Colunas info_tipo_bin:", df_tipo_bin.columns.tolist())
 
-        # --- Renomeia colunas para fazer o join corretamente ---
+        # Renomeia para padronizar
         df_posicoes_prod = df_posicoes_prod.rename(columns={
             "Posição no depósito": "Posicao",
             "Tipo de depósito": "Tipo_de_depósito"
         })
-
         df_posicao_bin = df_posicao_bin.rename(columns={
-            "Posição": "Posicao",  # ajuste conforme nome no CSV/banco
-            "Tipo_de_deposito": "Tipo_de_depósito"
+            "Posição_no_depósito": "Posicao",
+            "Tipo_de_depósito": "Tipo_de_depósito",
+            "Qtd._Caixas_BIN_ABASTECIMENTO": "Quantidade_Bin"
+        })
+        df_tipo_bin = df_tipo_bin.rename(columns={
+            "Tipo": "Tipo_Bin",
+            "Valume_(L)": "Volume_max_L"  # corrigindo erro de digitação
         })
 
         # --- Realiza os joins ---
@@ -140,7 +140,7 @@ if arquivo:
                     continue
 
                 volume_total = volume_unitario * qtd
-                bins_necessarias = int(-(-volume_total // volume_max))  # Arredonda para cima
+                bins_necessarias = int(-(-volume_total // volume_max))
                 bins_disponiveis = int(pos.get("Quantidade_Bin", 0))
                 diferenca = bins_disponiveis - bins_necessarias
 
