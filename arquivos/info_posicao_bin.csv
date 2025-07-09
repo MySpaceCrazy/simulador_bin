@@ -1,5 +1,4 @@
-Posição no depósito;Tipo de depósito;Corr.pos.dep.;Col.posição depósito;Nível da posição;Subdiv.pos.dep.;Bloq.entr.depósito;Bloq.saída depós.;Estrutura;Tipo;"Qtd. Caixas BIN
-ABASTECIMENTO"
+Posição no depósito;Tipo de depósito;Corr.pos.dep.;Col.posição depósito;Nível da posição;Subdiv.pos.dep.;Bloq.entr.depósito;Bloq.saída depós.;Estrutura;Tipo;Qtd. Caixas BIN ABASTECIMENTO
 001-001-000-001;0056;001;001;000;001;X;X;Fraldas;Pallet;1
 001-002-000-001;0056;001;002;000;001;X;X;Fraldas;Pallet;1
 001-003-000-001;0056;001;003;000;001;X;X;Fraldas;Pallet;1
@@ -131,7 +130,6 @@ ABASTECIMENTO"
 003-014-000-001;0056;003;014;000;001;X;X;Fraldas;Pallet;1
 003-015-000-001;0056;003;015;000;001;X;X;Fraldas;Pallet;1
 003-016-000-001;0056;003;016;000;001;X;X;Fraldas;Pallet;1
-0056-START_END;0056;;;;;;;Fraldas;Pallet;1
 018-001-000-001;0053;018;001;000;001;;;Caixa Fechada;Pallet;1
 018-002-000-001;0053;018;002;000;001;;;Caixa Fechada;Pallet;1
 018-003-000-001;0053;018;003;000;001;;;Caixa Fechada;Pallet;1
