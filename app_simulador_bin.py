@@ -59,7 +59,7 @@ if arquivo:
                 st.error(f"Coluna obrigatória ausente na info_posicao_produtos: {col}")
                 st.stop()
 
-        # --- Ajustes base ---
+        # --- Ajustes e normalizações ---
         df_base["Recebedor mercadoria"] = df_base["Recebedor mercadoria"].astype(str).str.zfill(5)
         df_base["Tipo_de_depósito"] = df_base["Área de atividade"].astype(str).str[:2].str.zfill(4)
         df_base["Peso"] = pd.to_numeric(df_base["Peso"], errors="coerce").fillna(0)
@@ -67,6 +67,7 @@ if arquivo:
         df_base["Qtd.solicitada total"] = pd.to_numeric(df_base["Qtd.solicitada total"], errors="coerce").fillna(1)
         df_base.loc[df_base["UM peso"] == "G", "Peso"] /= 1000
         df_base.loc[df_base["UM volume"] == "ML", "Volume"] /= 1000
+
         df_base["Volume unitário (L)"] = df_base["Volume"] / df_base["Qtd.solicitada total"]
         df_base["Peso unitário (KG)"] = df_base["Peso"] / df_base["Qtd.solicitada total"]
 
@@ -79,7 +80,7 @@ if arquivo:
         st.write("📋 Colunas info_posicao_bin:", df_posicao_bin.columns.tolist())
         st.write("📋 Colunas info_tipo_bin:", df_tipo_bin.columns.tolist())
 
-        # --- Renomeia colunas ---
+        # --- Renomeia colunas para padronizar ---
         df_posicoes_prod = df_posicoes_prod.rename(columns={
             "Posição no depósito": "Posicao",
             "Tipo de depósito": "Tipo_de_depósito"
@@ -87,22 +88,21 @@ if arquivo:
         df_posicao_bin = df_posicao_bin.rename(columns={
             "Posição_no_depósito": "Posicao",
             "Tipo_de_depósito": "Tipo_de_depósito",
-            "Qtd._Caixas_BIN_ABASTECIMENTO": "Quantidade_Bin",
-            "Tipo": "Tipo"  # já está correto
+            "Qtd._Caixas_BIN_ABASTECIMENTO": "Quantidade_Bin"
         })
         df_tipo_bin = df_tipo_bin.rename(columns={
             "Valume_(L)": "Volume_max_L"
         })
 
-        # --- Merge entre posições e bins ---
-        df_posicoes_prod = df_posicoes_prod.merge(df_posicao_bin, on=["Posicao", "Tipo_de_depósito"], how="left")
-        df_posicoes_prod["Tipo"] = df_posicoes_prod["Tipo"].astype(str).str.strip()
+        # --- Garante que colunas estejam no mesmo tipo ---
+        df_posicao_bin["Tipo"] = df_posicao_bin["Tipo"].astype(str).str.strip()
         df_tipo_bin["Tipo"] = df_tipo_bin["Tipo"].astype(str).str.strip()
 
+        # --- Realiza os joins ---
+        df_posicoes_prod = df_posicoes_prod.merge(df_posicao_bin, on=["Posicao", "Tipo_de_depósito"], how="left")
         df_posicoes_prod = df_posicoes_prod.merge(df_tipo_bin, on="Tipo", how="left")
-        df_posicoes_prod = df_posicoes_prod.rename(columns={"Tipo": "Tipo_Bin"})
 
-        # --- Calcula demanda ---
+        # --- Cálculo das bins ---
         resultado = []
         for _, row in df_base.iterrows():
             produto = row["Produto"]
@@ -127,7 +127,7 @@ if arquivo:
 
             for _, pos in posicoes.iterrows():
                 posicao = pos.get("Posicao", "N/A")
-                tipo_bin = pos.get("Tipo_Bin", "N/A")
+                tipo_bin = pos.get("Tipo", "N/A")
                 volume_max = pos.get("Volume_max_L", 1)
 
                 if pd.isna(volume_max) or volume_max <= 0:
