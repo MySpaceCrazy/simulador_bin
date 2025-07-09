@@ -92,7 +92,7 @@ if arquivo:
         })
         df_tipo_bin = df_tipo_bin.rename(columns={
             "Tipo": "Tipo",
-            "Volume (L)": "Volume_max_L"
+            "Volume_(L)": "Volume_max_L"
         })
         # --- Converte vírgulas em ponto e transforma em numérico ---
         df_tipo_bin["Volume_max_L"] = df_tipo_bin["Volume_max_L"].astype(str).str.replace(",", ".", regex=False)
