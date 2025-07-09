@@ -91,6 +91,7 @@ if arquivo:
             "Qtd._Caixas_BIN_ABASTECIMENTO": "Quantidade_Bin"
         })
         df_tipo_bin = df_tipo_bin.rename(columns={
+            "Tipo": "Tipo",
             "Valume_(L)": "Volume_max_L"
         })
 
