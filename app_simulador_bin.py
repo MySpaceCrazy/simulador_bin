@@ -313,10 +313,10 @@ st.markdown("""
     <p>Engenheiro de Dados | Soluções Logísticas | Automações</p>
     <div style="margin: 10px 0;">
         <a href="https://github.com/MySpaceCrazy" target="_blank">
-            <img src="https://raw.githubusercontent.com/MySpaceCrazy/Simulador_caixas_2D/refs/heads/main/github.ico" alt="GitHub" style="width: 32px; height: 32px; margin-right: 10px;">
+            <img src="https://raw.githubusercontent.com/MySpaceCrazy/simulador_bin/refs/heads/main/Imagens/github.ico" alt="GitHub" style="width: 32px; height: 32px; margin-right: 10px;">
         </a>
         <a href="https://www.linkedin.com/in/%C3%A2nderson-matheus-flores-de-oliveira-5b92781b4" target="_blank">
-            <img src="https://raw.githubusercontent.com/MySpaceCrazy/Simulador_caixas_2D/refs/heads/main/linkedin.ico" alt="LinkedIn" style="width: 32px; height: 32px;">
+            <img src="https://raw.githubusercontent.com/MySpaceCrazy/simulador_bin/refs/heads/main/Imagens/linkedin.ico" alt="LinkedIn" style="width: 32px; height: 32px;">
         </a>
     </div>
 </div>
