@@ -5,6 +5,7 @@ import pandas as pd
 import sqlite3
 import os
 import io
+import time
 
 # --- Atualiza o banco SQLite diretamente ---
 PASTA_CSV = "arquivos"
@@ -45,8 +46,12 @@ arquivo = st.file_uploader("📂 Selecionar arquivo de simulação (.xlsx)", typ
 
 if arquivo:
     try:
+        inicio_tempo = time.time()
         df_base = pd.read_excel(arquivo, sheet_name="base_item_pacotes")
         df_posicoes_prod = pd.read_excel(arquivo, sheet_name="info_posicao_produtos")
+
+        total_linhas_base = len(df_base)
+        contador_sucesso = 0
 
         # --- Validação ---
         colunas_obrigatorias_base = ["Produto", "Qtd.solicitada total", "Recebedor mercadoria", "Peso", "UM peso", "Volume", "UM volume", "Área de atividade"]
@@ -79,19 +84,9 @@ if arquivo:
         conn.close()
 
         # --- Renomeia e normaliza colunas ---
-        df_posicoes_prod = df_posicoes_prod.rename(columns={
-            "Posição no depósito": "Posicao",
-            "Tipo de depósito": "Tipo_de_depósito"
-        })
-        df_posicao_bin = df_posicao_bin.rename(columns={
-            "Posição_no_depósito": "Posicao",
-            "Tipo_de_depósito": "Tipo_de_depósito",
-            "Qtd._Caixas_BIN_ABASTECIMENTO": "Quantidade_Bin"
-        })
-        df_tipo_bin = df_tipo_bin.rename(columns={
-            "Tipo": "Tipo",
-            "Volume_(L)": "Volume_max_L"
-        })
+        df_posicoes_prod = df_posicoes_prod.rename(columns={"Posição no depósito": "Posicao", "Tipo de depósito": "Tipo_de_depósito"})
+        df_posicao_bin = df_posicao_bin.rename(columns={"Posição_no_depósito": "Posicao", "Tipo_de_depósito": "Tipo_de_depósito", "Qtd._Caixas_BIN_ABASTECIMENTO": "Quantidade_Bin"})
+        df_tipo_bin = df_tipo_bin.rename(columns={"Tipo": "Tipo", "Volume_(L)": "Volume_max_L"})
 
         df_tipo_bin["Tipo"] = df_tipo_bin["Tipo"].astype(str).str.strip()
         df_posicao_bin["Tipo"] = df_posicao_bin["Tipo"].astype(str).str.strip()
@@ -112,24 +107,15 @@ if arquivo:
             volume_unitario = row["Volume unitário (L)"]
             qtd = row["Qtd.solicitada total"]
 
-            posicoes = df_posicoes_prod[
-                (df_posicoes_prod["Produto"] == produto) &
-                (df_posicoes_prod["Tipo_de_depósito"] == estrutura)
-            ]
+            posicoes = df_posicoes_prod[(df_posicoes_prod["Produto"] == produto) & (df_posicoes_prod["Tipo_de_depósito"] == estrutura)]
 
             if posicoes.empty:
                 resultado.append({
-                    "Produto": produto,
-                    "Recebedor": loja,
-                    "Estrutura": estrutura,
-                    "Posicao": "N/A",
-                    "Tipo_Bin": "N/A",
+                    "Produto": produto, "Recebedor": loja, "Estrutura": estrutura,
+                    "Posicao": "N/A", "Tipo_Bin": "N/A",
                     "Bins_Necessarias": "Erro: Produto sem posição",
-                    "Bins_Disponiveis": "-",
-                    "Diferença": "-",
-                    "Quantidade_Total": "-",
-                    "Volume_Total": "-",
-                    "Volumetria_Máxima": "-"
+                    "Bins_Disponiveis": "-", "Diferença": "-",
+                    "Quantidade_Total": "-", "Volume_Total": "-", "Volumetria_Máxima": "-"
                 })
                 continue
 
@@ -141,44 +127,36 @@ if arquivo:
 
                 if pd.isna(volume_max) or volume_max <= 0:
                     resultado.append({
-                        "Produto": produto,
-                        "Recebedor": loja,
-                        "Estrutura": estrutura,
-                        "Posicao": posicao,
-                        "Tipo_Bin": tipo_bin,
+                        "Produto": produto, "Recebedor": loja, "Estrutura": estrutura,
+                        "Posicao": posicao, "Tipo_Bin": tipo_bin,
                         "Bins_Necessarias": "Erro: Bin sem volume",
-                        "Bins_Disponiveis": pos.get("Quantidade_Bin", 0),
-                        "Diferença": "-",
-                        "Quantidade_Total": "-",
-                        "Volume_Total": "-",
-                        "Volumetria_Máxima": "-"
+                        "Bins_Disponiveis": pos.get("Quantidade_Bin", 0), "Diferença": "-",
+                        "Quantidade_Total": "-", "Volume_Total": "-", "Volumetria_Máxima": "-"
                     })
                     continue
 
-                bins_necessarias = int(-(-volume_total // volume_max))  # teto da divisão
+                bins_necessarias = int(-(-volume_total // volume_max))
                 bins_disponiveis = int(pos.get("Quantidade_Bin", 0))
                 diferenca = bins_disponiveis - bins_necessarias
-
                 quantidade_total = min(bins_necessarias * qtd, qtd)
                 volume_total_bins = quantidade_total * volume_unitario
                 volumetria_maxima = bins_disponiveis * volume_max
 
                 resultado.append({
-                    "Produto": produto,
-                    "Recebedor": loja,
-                    "Estrutura": estrutura,
-                    "Posicao": posicao,
-                    "Tipo_Bin": tipo_bin,
+                    "Produto": produto, "Recebedor": loja, "Estrutura": estrutura,
+                    "Posicao": posicao, "Tipo_Bin": tipo_bin,
                     "Bins_Necessarias": bins_necessarias,
                     "Bins_Disponiveis": bins_disponiveis,
                     "Diferença": diferenca,
                     "Quantidade_Total": quantidade_total,
-                    "Volume_Total":  round(volume_total_bins, 2),
+                    "Volume_Total": round(volume_total_bins, 2),
                     "Volumetria_Máxima": round(volumetria_maxima, 2)
                 })
+                contador_sucesso += 1
 
         df_resultado = pd.DataFrame(resultado)
 
+        # --- Relatórios e exibição ---
         # --- Relatório Resumo por Produto e Estrutura ---
         df_resumo = df_resultado.merge(
             df_posicao_bin[["Posicao", "Tipo_de_depósito", "Estrutura"]].drop_duplicates(),
@@ -287,12 +265,21 @@ if arquivo:
             st.write(f"**Total Geral: {total_geral_ok} posições**")
 
         st.markdown("---")
+        st.success("✅ Simulação concluída com sucesso!")
+
+        # --- Tempo total da simulação ---
+        tempo_total = time.time() - inicio_tempo
 
         st.success("✅ Simulação concluída com sucesso!")
+        st.write(f"⏱️ Tempo total da simulação: **{round(tempo_total, 2)} segundos**")
+        st.write(f"📄 Total de linhas da base: **{total_linhas_base}**")
+        st.write(f"✔️ Linhas simuladas sem erro: **{contador_sucesso}**")
+
 
     except Exception as e:
         st.error(f"Erro no processamento: {e}")
 
+# --- Rodapé ---
 # --- Rodapé ---
 st.markdown("---")
 st.markdown("""
@@ -341,3 +328,4 @@ st.markdown("""
             <p class="footer-text">© 2025 Ânderson Oliveira. Todos os direitos reservados.</p>
 </div>
 """, unsafe_allow_html=True)
+# --- Fim do rodapé ---
