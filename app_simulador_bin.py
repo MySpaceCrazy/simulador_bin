@@ -168,11 +168,9 @@ if arquivo:
 
         # --- Relatório Resumo por Produto e Estrutura ---
 
-        # Lê novamente info_posicao_bin e info_posicao_produtos para buscar as descrições
-        conn = sqlite3.connect("logistica.db")
-        df_posicao_bin = pd.read_sql("SELECT Posicao, Tipo_de_depósito, Estrutura FROM info_posicao_bin", conn)
-        conn.close()
-
+        
+        df_estrutura = df_posicao_bin[["Posicao", "Tipo_de_depósito", "Estrutura"]].drop_duplicates()
+        
         # Ajusta tipos
         df_posicao_bin["Tipo_de_depósito"] = df_posicao_bin["Tipo_de_depósito"].astype(str).str.zfill(4).str.strip()
 
