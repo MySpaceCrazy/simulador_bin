@@ -173,8 +173,8 @@ if arquivo:
                     "Bins_Disponiveis": bins_disponiveis,
                     "Diferença": diferenca,
                     "Quantidade_Total": quantidade_total,
-                    "Volume_Total": volume_total_bins,
-                    "Volumetria_Máxima": volumetria_maxima
+                    "Volume_Total":  round(volume_total_bins, 2),
+                    "Volumetria_Máxima": round(volumetria_maxima, 2)
                 })
 
         df_resultado = pd.DataFrame(resultado)
