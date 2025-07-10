@@ -77,7 +77,7 @@ if arquivo:
         df_posicao_bin = pd.read_sql("SELECT * FROM info_posicao_bin", conn)
         conn.close()
 
-        # --- Renomeia colunas ---
+        # --- Renomeia e normaliza colunas ---
         df_posicoes_prod = df_posicoes_prod.rename(columns={
             "Posição no depósito": "Posicao",
             "Tipo de depósito": "Tipo_de_depósito"
@@ -92,14 +92,11 @@ if arquivo:
             "Volume_(L)": "Volume_max_L"
         })
 
-        # --- Tipagem e limpeza ---
         df_tipo_bin["Tipo"] = df_tipo_bin["Tipo"].astype(str).str.strip()
         df_posicao_bin["Tipo"] = df_posicao_bin["Tipo"].astype(str).str.strip()
-        df_tipo_bin["Volume_max_L"] = pd.to_numeric(df_tipo_bin["Volume_max_L"], errors="coerce").fillna(0)
-
-        # --- Corrige Tipo_de_depósito como texto com 4 dígitos ---
         df_posicao_bin["Tipo_de_depósito"] = df_posicao_bin["Tipo_de_depósito"].astype(str).str.zfill(4).str.strip()
         df_posicoes_prod["Tipo_de_depósito"] = df_posicoes_prod["Tipo_de_depósito"].astype(str).str.zfill(4).str.strip()
+        df_tipo_bin["Volume_max_L"] = pd.to_numeric(df_tipo_bin["Volume_max_L"], errors="coerce").fillna(0)
 
         # --- Joins ---
         df_posicoes_prod = df_posicoes_prod.merge(df_posicao_bin, on=["Posicao", "Tipo_de_depósito"], how="left")
@@ -114,6 +111,7 @@ if arquivo:
             volume_unitario = row["Volume unitário (L)"]
             qtd = row["Qtd.solicitada total"]
 
+            # Seleciona apenas as posições do mesmo produto e estrutura
             posicoes = df_posicoes_prod[
                 (df_posicoes_prod["Produto"] == produto) &
                 (df_posicoes_prod["Tipo_de_depósito"] == estrutura)
