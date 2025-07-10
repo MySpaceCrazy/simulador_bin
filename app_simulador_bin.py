@@ -236,7 +236,7 @@ if arquivo:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-        # --- Resumo 1: Posições - Não Atendem ---
+        # --- Calcula Resumo - Posições Não Atendem ---
         df_nao_atendem = df_resumo[df_resumo["Diferença"].apply(lambda x: pd.to_numeric(x, errors='coerce')).lt(0, fill_value=False)]
         resumo_nao_atendem = (
             df_nao_atendem.groupby("Descrição - estrutura")["Posição"]
@@ -245,14 +245,7 @@ if arquivo:
         )
         total_geral_nao_atendem = resumo_nao_atendem["Posições - Não Atendem"].sum()
 
-        # --- Exibe Resumo - Não Atendem ---
-        st.subheader("🚨 Resumo - Posições Não Atendem")
-        st.dataframe(resumo_nao_atendem)
-        st.write(f"**Total Geral: {total_geral_nao_atendem} posições**")
-
-        st.markdown("---")
-
-        # --- Resumo 2: Posições - OK ---
+        # --- Calcula Resumo - Posições OK ---
         df_ok = df_resumo[df_resumo["Diferença"].apply(lambda x: pd.to_numeric(x, errors='coerce')).ge(0, fill_value=False)]
         resumo_ok = (
             df_ok.groupby("Descrição - estrutura")["Posição"]
@@ -261,12 +254,21 @@ if arquivo:
         )
         total_geral_ok = resumo_ok["Posições - OK"].sum()
 
-        # --- Exibe Resumo - OK ---
-        st.subheader("✅ Resumo - Posições OK")
-        st.dataframe(resumo_ok)
-        st.write(f"**Total Geral: {total_geral_ok} posições**")
+        # --- Exibe os dois resumos lado a lado ---
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.subheader("🚨 Resumo - Posições Não Atendem")
+            st.dataframe(resumo_nao_atendem, use_container_width=True)
+            st.write(f"**Total Geral: {total_geral_nao_atendem} posições**")
+
+        with col2:
+            st.subheader("✅ Resumo - Posições OK")
+            st.dataframe(resumo_ok, use_container_width=True)
+            st.write(f"**Total Geral: {total_geral_ok} posições**")
 
         st.markdown("---")
+
         st.success("✅ Simulação concluída com sucesso!")
 
     except Exception as e:
