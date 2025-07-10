@@ -280,7 +280,6 @@ if arquivo:
         st.error(f"Erro no processamento: {e}")
 
 # --- Rodapé ---
-# --- Rodapé ---
 st.markdown("---")
 st.markdown("""
 <style>
