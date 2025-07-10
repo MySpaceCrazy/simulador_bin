@@ -19,8 +19,14 @@ for tabela, nome_arquivo in ARQUIVOS_CSV.items():
     caminho = os.path.join(PASTA_CSV, nome_arquivo)
     if os.path.exists(caminho):
         try:
-            df = pd.read_csv(caminho, sep=";|,", engine="python", encoding="latin1")
+            df = pd.read_csv(caminho, sep=";", engine="python", encoding="latin1")
             df.columns = [c.strip().replace(" ", "_") for c in df.columns]
+
+            # Ajusta coluna de volume do tipo_bin
+            if tabela == "info_tipo_bin" and "Volume_(L)" in df.columns:
+                df["Volume_(L)"] = df["Volume_(L)"].astype(str).str.replace(",", ".", regex=False)
+                df["Volume_(L)"] = pd.to_numeric(df["Volume_(L)"], errors="coerce").fillna(0)
+
             df.to_sql(tabela, conn, if_exists="replace", index=False)
             print(f"🔄 Atualizado: {tabela}")
         except Exception as e:
@@ -68,6 +74,7 @@ if arquivo:
         df_base.loc[df_base["UM peso"] == "G", "Peso"] /= 1000
         df_base.loc[df_base["UM volume"] == "ML", "Volume"] /= 1000
 
+        # Calcula volume e peso unitários
         df_base["Volume unitário (L)"] = df_base["Volume"] / df_base["Qtd.solicitada total"]
         df_base["Peso unitário (KG)"] = df_base["Peso"] / df_base["Qtd.solicitada total"]
 
@@ -80,7 +87,7 @@ if arquivo:
         st.write("📋 Colunas info_posicao_bin:", df_posicao_bin.columns.tolist())
         st.write("📋 Colunas info_tipo_bin:", df_tipo_bin.columns.tolist())
 
-        # --- Renomeia colunas corretamente ---
+        # --- Renomeia colunas para padronizar ---
         df_posicoes_prod = df_posicoes_prod.rename(columns={
             "Posição no depósito": "Posicao",
             "Tipo de depósito": "Tipo_de_depósito"
@@ -90,17 +97,10 @@ if arquivo:
             "Tipo_de_depósito": "Tipo_de_depósito",
             "Qtd._Caixas_BIN_ABASTECIMENTO": "Quantidade_Bin"
         })
-        # Corrige a coluna que estava escrita errado no CSV: Valume_(L)
         df_tipo_bin = df_tipo_bin.rename(columns={
             "Tipo": "Tipo",
-            "Volume_(L)": "Volume_max_L" 
+            "Volume_(L)": "Volume_max_L"
         })
-
-        # --- Converte vírgulas para ponto e transforma em numérico ---
-        df_tipo_bin["Volume_max_L"] = df_tipo_bin["Volume_max_L"].astype(str).str.replace(",", ".", regex=False)
-        df_tipo_bin["Volume_max_L"] = pd.to_numeric(df_tipo_bin["Volume_max_L"], errors="coerce").fillna(0)
-
-        st.write("Tabela info_tipo_bin carregada:", df_tipo_bin)
 
         # --- Garante que colunas estejam no mesmo tipo ---
         df_posicao_bin["Tipo"] = df_posicao_bin["Tipo"].astype(str).str.strip()
@@ -109,8 +109,6 @@ if arquivo:
         # --- Realiza os joins ---
         df_posicoes_prod = df_posicoes_prod.merge(df_posicao_bin, on=["Posicao", "Tipo_de_depósito"], how="left")
         df_posicoes_prod = df_posicoes_prod.merge(df_tipo_bin, on="Tipo", how="left")
-
-        st.write("🔍 Tabela pós join:", df_posicoes_prod)
 
         # --- Cálculo das bins ---
         resultado = []
@@ -121,6 +119,7 @@ if arquivo:
             volume_unitario = row["Volume unitário (L)"]
             qtd = row["Qtd.solicitada total"]
 
+            # Busca todas as posições daquele produto
             posicoes = df_posicoes_prod[df_posicoes_prod["Produto"] == produto]
             if posicoes.empty:
                 resultado.append({
@@ -135,6 +134,7 @@ if arquivo:
                 })
                 continue
 
+            # Calcula bins para cada posição possível
             for _, pos in posicoes.iterrows():
                 posicao = pos.get("Posicao", "N/A")
                 tipo_bin = pos.get("Tipo", "N/A")
@@ -154,7 +154,7 @@ if arquivo:
                     continue
 
                 volume_total = volume_unitario * qtd
-                bins_necessarias = int(-(-volume_total // volume_max))
+                bins_necessarias = int(-(-volume_total // volume_max))  # ceil division
                 bins_disponiveis = int(pos.get("Quantidade_Bin", 0))
                 diferenca = bins_disponiveis - bins_necessarias
 
