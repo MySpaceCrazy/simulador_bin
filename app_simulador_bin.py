@@ -120,7 +120,13 @@ if arquivo:
             qtd = row["Qtd.solicitada total"]
 
             # Busca todas as posições daquele produto
-            posicoes = df_posicoes_prod[df_posicoes_prod["Produto"] == produto]
+            estrutura_demanda = row["Tipo_de_depósito"]
+
+            posicoes = df_posicoes_prod[
+                (df_posicoes_prod["Produto"] == produto) &
+                (df_posicoes_prod["Estrutura"] == estrutura_demanda)
+            ]
+
             if posicoes.empty:
                 resultado.append({
                     "Produto": produto,
