@@ -126,7 +126,10 @@ if arquivo:
                     "Tipo_Bin": "N/A",
                     "Bins_Necessarias": "Erro: Produto sem posição",
                     "Bins_Disponiveis": "-",
-                    "Diferença": "-"
+                    "Diferença": "-",
+                    "Quantidade_Total": "-",
+                    "Volume_Total": "-",
+                    "Volumetria_Máxima": "-"
                 })
                 continue
 
@@ -145,13 +148,20 @@ if arquivo:
                         "Tipo_Bin": tipo_bin,
                         "Bins_Necessarias": "Erro: Bin sem volume",
                         "Bins_Disponiveis": pos.get("Quantidade_Bin", 0),
-                        "Diferença": "-"
+                        "Diferença": "-",
+                        "Quantidade_Total": "-",
+                        "Volume_Total": "-",
+                        "Volumetria_Máxima": "-"
                     })
                     continue
 
-                bins_necessarias = int(-(-volume_total // volume_max))
+                bins_necessarias = int(-(-volume_total // volume_max))  # teto da divisão
                 bins_disponiveis = int(pos.get("Quantidade_Bin", 0))
                 diferenca = bins_disponiveis - bins_necessarias
+
+                quantidade_total = min(bins_necessarias * qtd, qtd)
+                volume_total_bins = quantidade_total * volume_unitario
+                volumetria_maxima = bins_disponiveis * volume_max
 
                 resultado.append({
                     "Produto": produto,
@@ -161,7 +171,10 @@ if arquivo:
                     "Tipo_Bin": tipo_bin,
                     "Bins_Necessarias": bins_necessarias,
                     "Bins_Disponiveis": bins_disponiveis,
-                    "Diferença": diferenca
+                    "Diferença": diferenca,
+                    "Quantidade_Total": quantidade_total,
+                    "Volume_Total": volume_total_bins,
+                    "Volumetria_Máxima": volumetria_maxima
                 })
 
         df_resultado = pd.DataFrame(resultado)
@@ -189,7 +202,10 @@ if arquivo:
             "Tipo_Bin",
             "Bins_Necessarias",
             "Bins_Disponiveis",
-            "Diferença"
+            "Diferença",
+            "Quantidade_Total",
+            "Volume_Total",
+            "Volumetria_Máxima"
         ]]
 
         df_resumo.columns = [
@@ -201,7 +217,10 @@ if arquivo:
             "Tipo_Bin",
             "Bins_Necessarias",
             "Bins_Disponiveis",
-            "Diferença"
+            "Diferença",
+            "Quantidade Total",
+            "Volume Total",
+            "Volumetria Máxima"
         ]
 
         # --- Exibe e download Detalhado ---
