@@ -167,10 +167,9 @@ if arquivo:
         df_resultado = pd.DataFrame(resultado)
 
         # --- Relatório Resumo por Produto e Estrutura ---
-
         
         df_estrutura = df_posicao_bin[["Posicao", "Tipo_de_depósito", "Estrutura"]].drop_duplicates()
-        
+
         # Ajusta tipos
         df_posicao_bin["Tipo_de_depósito"] = df_posicao_bin["Tipo_de_depósito"].astype(str).str.zfill(4).str.strip()
 
@@ -204,8 +203,25 @@ if arquivo:
             "Bins_Disponiveis",
             "Diferença"
         ]
+        # --- Exibe resultado --- (Detalhado por produto e estrutura e loja)
+        st.subheader("📊 Detalhado por produto e estrutura e loja")
+        st.dataframe(df_resultado)
 
-        # Exibe e permite download
+        # --- Download Excel ---
+        buffer = io.BytesIO()
+        with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
+            df_resultado.to_excel(writer, sheet_name="Detalhado Bins", index=False)
+
+        st.download_button(
+            label="📥 Baixar Relatório Excel",
+            data=buffer.getvalue(),
+            file_name="Simulacao_Bins.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        
+        st.markdown("---")
+
+        # Exibe e permite download (Resumo por Produto e Estrutura)
         st.subheader("📊 Resumo por Produto e Estrutura")
         st.dataframe(df_resumo)
 
