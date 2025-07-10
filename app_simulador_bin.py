@@ -6,6 +6,7 @@ import sqlite3
 import os
 import io
 import time
+import datetime
 
 # --- Atualiza o banco SQLite diretamente ---
 PASTA_CSV = "arquivos"
@@ -269,9 +270,10 @@ if arquivo:
 
         # --- Tempo total da simulação ---
         tempo_total = time.time() - inicio_tempo
+        tempo_formatado = str(datetime.timedelta(seconds=int(tempo_total)))
 
         st.success("✅ Simulação concluída com sucesso!")
-        st.write(f"⏱️ Tempo total da simulação: **{round(tempo_total, 2)} segundos**")
+        st.write(f"⏱️ Tempo total da simulação: **{tempo_formatado}**")
         st.write(f"📄 Total de linhas da base: **{total_linhas_base}**")
         st.write(f"✔️ Linhas simuladas sem erro: **{contador_sucesso}**")
 
