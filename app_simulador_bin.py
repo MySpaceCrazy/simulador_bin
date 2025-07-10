@@ -48,6 +48,7 @@ if arquivo:
         df_base = pd.read_excel(arquivo, sheet_name="base_item_pacotes")
         df_posicoes_prod = pd.read_excel(arquivo, sheet_name="info_posicao_produtos")
 
+        # --- Validação ---
         colunas_obrigatorias_base = ["Produto", "Qtd.solicitada total", "Recebedor mercadoria", "Peso", "UM peso", "Volume", "UM volume", "Área de atividade"]
         colunas_obrigatorias_pos = ["Posição no depósito", "Tipo de depósito", "Área armazmto", "Produto"]
 
@@ -111,7 +112,6 @@ if arquivo:
             volume_unitario = row["Volume unitário (L)"]
             qtd = row["Qtd.solicitada total"]
 
-            # Seleciona apenas as posições do mesmo produto e estrutura
             posicoes = df_posicoes_prod[
                 (df_posicoes_prod["Produto"] == produto) &
                 (df_posicoes_prod["Tipo_de_depósito"] == estrutura)
@@ -167,22 +167,22 @@ if arquivo:
         df_resultado = pd.DataFrame(resultado)
 
         # --- Relatório Resumo por Produto e Estrutura ---
-        
-        df_estrutura = df_posicao_bin[["Posicao", "Tipo_de_depósito", "Estrutura"]].drop_duplicates()
+        df_resumo = df_resultado.merge(
+            df_posicao_bin[["Posicao", "Tipo_de_depósito", "Estrutura"]].drop_duplicates(),
+            how="left",
+            left_on=["Posicao", "Estrutura"],
+            right_on=["Posicao", "Tipo_de_depósito"]
+        )
 
-        # Ajusta tipos
-        df_posicao_bin["Tipo_de_depósito"] = df_posicao_bin["Tipo_de_depósito"].astype(str).str.zfill(4).str.strip()
+        df_resumo = df_resumo.merge(
+            df_posicoes_prod[["Produto", "Descrição breve do produto"]].drop_duplicates(),
+            on="Produto",
+            how="left"
+        )
 
-        # Junta a descrição da estrutura
-        df_resumo = df_resultado.merge(df_posicao_bin, how="left", left_on=["Posicao", "Estrutura"], right_on=["Posicao", "Tipo_de_depósito"])
-
-        # Junta a descrição do produto
-        df_resumo = df_resumo.merge(df_posicoes_prod[["Produto", "Descrição breve do produto"]].drop_duplicates(), on="Produto", how="left")
-
-        # Seleciona e renomeia colunas finais
         df_resumo = df_resumo[[
-            "Estrutura_x",            # Estrutura (Tipo_de_depósito da simulação)
-            "Estrutura_y",            # Descrição da estrutura (do banco)
+            "Estrutura_x",
+            "Estrutura_y",
             "Posicao",
             "Produto",
             "Descrição breve do produto",
@@ -203,11 +203,11 @@ if arquivo:
             "Bins_Disponiveis",
             "Diferença"
         ]
-        # --- Exibe resultado --- (Detalhado por produto e estrutura e loja)
+
+        # --- Exibe e download Detalhado ---
         st.subheader("📊 Detalhado por Loja, Estrutura e Produto")
         st.dataframe(df_resultado)
 
-        # --- Download Excel ---
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
             df_resultado.to_excel(writer, sheet_name="Detalhado Bins", index=False)
@@ -221,7 +221,7 @@ if arquivo:
 
         st.markdown("---")
 
-        # Exibe e permite download (Resumo por Produto e Estrutura)
+        # --- Exibe e download Resumo por Produto e Estrutura ---
         st.subheader("📊 Resumo por Produto e Estrutura")
         st.dataframe(df_resumo)
 
@@ -235,7 +235,6 @@ if arquivo:
             file_name="Resumo_Produto_Estrutura.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-
 
     except Exception as e:
         st.error(f"Erro no processamento: {e}")
