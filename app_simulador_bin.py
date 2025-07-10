@@ -204,7 +204,7 @@ if arquivo:
             "Diferença"
         ]
         # --- Exibe resultado --- (Detalhado por produto e estrutura e loja)
-        st.subheader("📊 Detalhado por produto e estrutura e loja")
+        st.subheader("📊 Detalhado por Loja, Estrutura e Produto")
         st.dataframe(df_resultado)
 
         # --- Download Excel ---
@@ -218,7 +218,7 @@ if arquivo:
             file_name="Simulacao_Bins.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-        
+
         st.markdown("---")
 
         # Exibe e permite download (Resumo por Produto e Estrutura)
