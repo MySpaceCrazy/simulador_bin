@@ -166,21 +166,62 @@ if arquivo:
 
         df_resultado = pd.DataFrame(resultado)
 
-        # --- Exibe resultado ---
-        st.subheader("📊 Resultado da Simulação")
-        st.dataframe(df_resultado)
+        # --- Relatório Resumo por Produto e Estrutura ---
 
-        # --- Download Excel ---
-        buffer = io.BytesIO()
-        with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-            df_resultado.to_excel(writer, sheet_name="Resumo Bins", index=False)
+        # Lê novamente info_posicao_bin e info_posicao_produtos para buscar as descrições
+        conn = sqlite3.connect("logistica.db")
+        df_posicao_bin = pd.read_sql("SELECT Posicao, Tipo_de_depósito, Estrutura FROM info_posicao_bin", conn)
+        conn.close()
+
+        # Ajusta tipos
+        df_posicao_bin["Tipo_de_depósito"] = df_posicao_bin["Tipo_de_depósito"].astype(str).str.zfill(4).str.strip()
+
+        # Junta a descrição da estrutura
+        df_resumo = df_resultado.merge(df_posicao_bin, how="left", left_on=["Posicao", "Estrutura"], right_on=["Posicao", "Tipo_de_depósito"])
+
+        # Junta a descrição do produto
+        df_resumo = df_resumo.merge(df_posicoes_prod[["Produto", "Descrição breve do produto"]].drop_duplicates(), on="Produto", how="left")
+
+        # Seleciona e renomeia colunas finais
+        df_resumo = df_resumo[[
+            "Estrutura_x",            # Estrutura (Tipo_de_depósito da simulação)
+            "Estrutura_y",            # Descrição da estrutura (do banco)
+            "Posicao",
+            "Produto",
+            "Descrição breve do produto",
+            "Tipo_Bin",
+            "Bins_Necessarias",
+            "Bins_Disponiveis",
+            "Diferença"
+        ]]
+
+        df_resumo.columns = [
+            "Estrutura",
+            "Descrição - estrutura",
+            "Posição",
+            "Produto",
+            "Descrição – produto",
+            "Tipo_Bin",
+            "Bins_Necessarias",
+            "Bins_Disponiveis",
+            "Diferença"
+        ]
+
+        # Exibe e permite download
+        st.subheader("📊 Resumo por Produto e Estrutura")
+        st.dataframe(df_resumo)
+
+        buffer_resumo = io.BytesIO()
+        with pd.ExcelWriter(buffer_resumo, engine="xlsxwriter") as writer:
+            df_resumo.to_excel(writer, sheet_name="Resumo Produto Estrutura", index=False)
 
         st.download_button(
-            label="📥 Baixar Relatório Excel",
-            data=buffer.getvalue(),
-            file_name="Simulacao_Bins.xlsx",
+            label="📥 Baixar Resumo Produto/Estrutura",
+            data=buffer_resumo.getvalue(),
+            file_name="Resumo_Produto_Estrutura.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
 
     except Exception as e:
         st.error(f"Erro no processamento: {e}")
