@@ -49,8 +49,8 @@ if arquivo:
         df_base = pd.read_excel(arquivo, sheet_name="base_item_pacotes")
         df_posicoes_prod = pd.read_excel(arquivo, sheet_name="info_posicao_produtos")
 
-        st.write("📋 Colunas base_item_pacotes:", df_base.columns.tolist())
-        st.write("📋 Colunas info_posicao_produtos:", df_posicoes_prod.columns.tolist())
+        #st.write("📋 Colunas base_item_pacotes:", df_base.columns.tolist())
+        #st.write("📋 Colunas info_posicao_produtos:", df_posicoes_prod.columns.tolist())
 
         colunas_obrigatorias_base = ["Produto", "Qtd.solicitada total", "Recebedor mercadoria", "Peso", "UM peso", "Volume", "UM volume", "Área de atividade"]
         colunas_obrigatorias_pos = ["Posição no depósito", "Tipo de depósito", "Área armazmto", "Produto"]
@@ -84,8 +84,8 @@ if arquivo:
         df_posicao_bin = pd.read_sql("SELECT * FROM info_posicao_bin", conn)
         conn.close()
 
-        st.write("📋 Colunas info_posicao_bin:", df_posicao_bin.columns.tolist())
-        st.write("📋 Colunas info_tipo_bin:", df_tipo_bin.columns.tolist())
+        #st.write("📋 Colunas info_posicao_bin:", df_posicao_bin.columns.tolist())
+        #st.write("📋 Colunas info_tipo_bin:", df_tipo_bin.columns.tolist())
 
         # --- Renomeia colunas para padronizar ---
         df_posicoes_prod = df_posicoes_prod.rename(columns={
