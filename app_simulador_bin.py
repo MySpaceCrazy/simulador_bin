@@ -295,7 +295,17 @@ if not st.session_state["simulando"]:
             tempo_formatado = str(datetime.timedelta(seconds=int(tempo_total)))
 
             st.success("✅ Simulação concluída com sucesso!")
-            
+
+            # --- Exibe Resumo de Linhas Processadas ---
+            st.markdown("---")
+            st.subheader("📊 Resumo de Linhas Processadas")
+            st.write(f"⏱️ Tempo total da simulação: **{tempo_formatado}**")
+            st.write(f"📄 Total de linhas da base: **{total_linhas_base}**")
+            st.write(f"✔️ Linhas simuladas sem erro: **{contador_sucesso}**")
+            st.write(f"❌ Linhas com erro: **{total_linhas_base - contador_sucesso}**")
+            st.write("**Observação:** Linhas com erro foram registradas no relatório de erros.")
+            st.session_state["simulando"] = False
+
             # --- Exibe Resumo de Erros ---
             st.subheader("🚨 Resumo de Erros")
             df_erros = df_resultado[df_resultado["Bins_Necessarias"].astype(str).str.contains("Erro")]
@@ -312,20 +322,14 @@ if not st.session_state["simulando"]:
                 )
             else:
                 st.info("✅ Nenhum erro encontrado na simulação.")
-
-            # --- Exibe Resumo de Linhas Processadas ---
-            st.markdown("---")
-            st.subheader("📊 Resumo de Linhas Processadas")
-            st.write(f"⏱️ Tempo total da simulação: **{tempo_formatado}**")
-            st.write(f"📄 Total de linhas da base: **{total_linhas_base}**")
-            st.write(f"✔️ Linhas simuladas sem erro: **{contador_sucesso}**")
-            st.write(f"❌ Linhas com erro: **{total_linhas_base - contador_sucesso}**")
-            st.write("**Observação:** Linhas com erro foram registradas no relatório de erros.")
+            
             st.session_state["simulando"] = False
+            st.rerun()
 
         except Exception as e:
             st.session_state["simulando"] = False
             st.error(f"Erro no processamento: {e}")
+            st.rerun()
 
 # --- Rodapé ---
 st.markdown("---")
