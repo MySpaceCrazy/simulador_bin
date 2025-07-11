@@ -183,7 +183,8 @@ if arquivo and not st.session_state["simulando"]:
             df_resultado = pd.DataFrame(resultado)
 
             # --- Relatórios e exibição ---
-            # --- Relatório Resumo por Produto e Estrutura ---
+    
+            # --- Relatório Resumo por Produto e Estrutura (AGRUPADO) ---
             df_resumo = df_resultado.merge(
                 df_posicao_bin[["Posicao", "Tipo_de_depósito", "Estrutura"]].drop_duplicates(),
                 how="left",
@@ -197,7 +198,8 @@ if arquivo and not st.session_state["simulando"]:
                 how="left"
             )
 
-            df_resumo = df_resumo[[
+            # Seleciona e renomeia as colunas
+            df_resumo = df_resumo[[ 
                 "Estrutura_x",
                 "Estrutura_y",
                 "Posicao",
@@ -227,6 +229,21 @@ if arquivo and not st.session_state["simulando"]:
                 "Volumetria Máxima"
             ]
 
+            # AGRUPAMENTO para consolidar duplicatas
+            df_resumo_agrupado = df_resumo.groupby([
+                "Estrutura", "Descrição - estrutura", "Posição", "Produto", "Descrição – produto", "Tipo_Bin"
+            ], as_index=False).agg({
+                "Bins_Necessarias": "sum",
+                "Bins_Disponiveis": "sum",
+                "Diferença": "sum",
+                "Quantidade Total": "sum",
+                "Volume Total": "sum",
+                "Volumetria Máxima": "sum"
+            })
+
+            # Agora use df_resumo_agrupado nas exibições e downloads
+ 
+
             # --- Exibe e download Detalhado ---
             st.subheader("📊 Detalhado por Loja, Estrutura e Produto")
             st.dataframe(df_resultado)
@@ -246,11 +263,11 @@ if arquivo and not st.session_state["simulando"]:
 
             # --- Exibe e download Resumo por Produto e Estrutura ---
             st.subheader("📊 Resumo por Produto e Estrutura")
-            st.dataframe(df_resumo)
+            st.dataframe(df_resumo_agrupado)
 
             buffer_resumo = io.BytesIO()
             with pd.ExcelWriter(buffer_resumo, engine="xlsxwriter") as writer:
-                df_resumo.to_excel(writer, sheet_name="Resumo Produto Estrutura", index=False)
+                df_resumo_agrupado.to_excel(writer, sheet_name="Resumo Produto Estrutura", index=False)
 
             st.download_button(
                 label="📥 Baixar Resumo Produto/Estrutura",
@@ -258,6 +275,7 @@ if arquivo and not st.session_state["simulando"]:
                 file_name="Resumo_Produto_Estrutura.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
+
 
             # --- Calcula Resumo - Posições Não Atendem ---
             df_nao_atendem = df_resumo[df_resumo["Diferença"].apply(lambda x: pd.to_numeric(x, errors='coerce')).lt(0, fill_value=False)]
