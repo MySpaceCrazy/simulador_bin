@@ -1,4 +1,4 @@
-# app_simulador_bin.py
+# app_simulador_bin.py - versão com adição de relatórios resumos gerais e erros....
 
 import streamlit as st
 import pandas as pd
@@ -189,48 +189,8 @@ if not st.session_state["simulando"]:
                         "Volumetria_Máxima": round(volumetria_maxima, 2)
                     })
                     contador_sucesso += 1
-                    break  # Para de procurar mais posições se já encontrou uma válida
-            # --- Cria DataFrame do resultado ---
-            df_resultado = pd.DataFrame(resultado) # Normaliza o resultado
-            df_resultado = df_resultado.fillna("N/A") # Preenche valores ausentes com "N/A"
-            df_resultado["Diferença"] = df_resultado["Diferença"].apply(lambda x: f"{x} Bins" if isinstance(x, int) else x) # Normaliza a diferença
-            df_resultado["Bins_Necessarias"] = df_resultado["Bins_Necessarias"].apply(lambda x: f"{x} Bins" if isinstance(x, int) else x) # Normaliza as bins necessárias
-            df_resultado["Bins_Disponiveis"] = df_resultado["Bins_Disponiveis"].apply(lambda x: f"{x} Bins" if isinstance(x, int) else x) # Normaliza as bins disponíveis
-            df_resultado["Quantidade_Total"] = df_resultado["Quantidade_Total"].apply(lambda x: f"{x} Unidades" if isinstance(x, int) else x) # Normaliza a quantidade total
-            df_resultado["Volume_Total"] = df_resultado["Volume_Total"].apply(lambda x: f"{x} L" if isinstance(x, (int, float)) else x) # Normaliza o volume total
-            df_resultado["Volumetria_Máxima"] = df_resultado["Volumetria_Máxima"].apply(lambda x: f"{x} L" if isinstance(x, (int, float)) else x) # Normaliza a volumetria máxima
-            df_resultado["Estrutura"] = df_resultado["Estrutura"].astype(str).str.strip() # Normaliza a estrutura
-            df_resultado["Posicao"] = df_resultado["Posicao"].astype(str).str.strip() # Normaliza a posição
-            df_resultado["Tipo_Bin"] = df_resultado["Tipo_Bin"].astype(str).str.strip() # Normaliza o tipo de bin
-            df_resultado["Produto"] = df_resultado["Produto"].astype(str).str.strip() # Normaliza o produto
-            df_resultado["Recebedor"] = df_resultado["Recebedor"].astype(str).str.strip() # Normaliza o recebedor
-            df_resultado["Quantidade_Total"] = df_resultado["Quantidade_Total"].astype(str).str.strip() # Normaliza a quantidade total
-            df_resultado["Volume_Total"] = df_resultado["Volume_Total"].astype(str).str.strip() # Normaliza o volume total
-            df_resultado["Volumetria_Máxima"] = df_resultado["Volumetria_Máxima"].astype(str).str.strip() # Normaliza a volumetria máxima
-            df_resultado["Diferença"] = df_resultado["Diferença"].astype(str).str.strip() # Normaliza a diferença
-            df_resultado["Bins_Necessarias"] = df_resultado["Bins_Necessarias"].astype(str).str.strip() # Normaliza as bins necessárias
-            df_resultado["Bins_Disponiveis"] = df_resultado["Bins_Disponiveis"].astype(str).str.strip() # Normaliza as bins disponíveis
-            df_resultado["Descrição breve do produto"] = "N/A"  # Inicializa com N/A
-            # --- Adiciona descrição breve do produto ---
-            df_posicoes_prod = df_posicoes_prod.rename(columns={"Descrição breve do produto": "Descrição breve do produto"}) # Normaliza o nome da coluna
-            df_resultado["Descrição breve do produto"] = df_resultado["Produto"].apply(
-                lambda x: df_posicoes_prod.loc[df_posicoes_prod["Produto"] == x, "Descrição breve do produto"].values[0] if not df_posicoes_prod[df_posicoes_prod["Produto"] == x].empty else "N/A"
-            ) # Adiciona a descrição breve do produto
-            # --- Normaliza colunas ---
-            df_resultado["Estrutura"] = df_resultado["Estrutura"].astype(str).str.zfill(4) # Normaliza a estrutura
-            df_resultado["Posicao"] = df_resultado["Posicao"].astype(str).str.zfill(4) # Normaliza a posição
-            df_resultado["Tipo_Bin"] = df_resultado["Tipo_Bin"].astype(str).str.strip() # Normaliza o tipo de bin
-            df_resultado["Produto"] = df_resultado["Produto"].astype(str).str.strip() # Normaliza o produto
-            df_resultado["Recebedor"] = df_resultado["Recebedor"].astype(str).str.zfill(5) # Normaliza o recebedor
-            df_resultado["Quantidade_Total"] = df_resultado["Quantidade_Total"].astype(str).str.strip() # Normaliza a quantidade total
-            df_resultado["Volume_Total"] = df_resultado["Volume_Total"].astype(str).str.strip() # Normaliza o volume total
-            df_resultado["Volumetria_Máxima"] = df_resultado["Volumetria_Máxima"].astype(str).str.strip() # Normaliza a volumetria máxima
-            df_resultado["Diferença"] = df_resultado["Diferença"].astype(str).str.strip() # Normaliza a diferença
-            df_resultado["Bins_Necessarias"] = df_resultado["Bins_Necessarias"].astype(str).str.strip() # Normaliza as bins necessárias
-            df_resultado["Bins_Disponiveis"] = df_resultado["Bins_Disponiveis"].astype(str).str.strip() # Normaliza as bins disponíveis
-            df_resultado["Descrição breve do produto"] = df_resultado["Descrição breve do produto"].astype(str).str.strip() # Normaliza a descrição do produto
-            df_resultado["Estrutura_x"] = df_resultado["Estrutura"] # Para evitar conflito de nomes
-            df_resultado["Estrutura_y"] = df_resultado["Estrutura"] # Para evitar conflito de nomes
+
+            df_resultado = pd.DataFrame(resultado)
 
             # --- Relatórios e exibição ---
             # --- Relatório Resumo por Produto e Estrutura ---
@@ -276,7 +236,6 @@ if not st.session_state["simulando"]:
                 "Volume Total",
                 "Volumetria Máxima"
             ]
-            
 
             # --- Exibe e download Detalhado ---
             st.subheader("📊 Detalhado por Loja, Estrutura e Produto")
@@ -342,51 +301,7 @@ if not st.session_state["simulando"]:
                 st.write(f"**Total Geral: {total_geral_ok} posições**")
 
             st.markdown("---")
-            # --- Exibe Resumo Geral ---
-            st.subheader("📊 Resumo Geral da Simulação")
-            resumo_geral = df_resumo.groupby("Descrição - estrutura").agg(
-                Total_Bins_Necessarias=("Bins_Necessarias", "sum"),
-                Total_Bins_Disponiveis=("Bins_Disponiveis", "sum"),
-                Total_Diferenca=("Diferença", "sum"),
-                Total_Quantidade_Total=("Quantidade Total", "sum"),
-                Total_Volume_Total=("Volume Total", "sum"),
-                Total_Volumetria_Maxima=("Volumetria Máxima", "sum")
-            ).reset_index()
-            resumo_geral.columns = [
-                "Descrição - estrutura",
-                "Total Bins Necessárias",
-                "Total Bins Disponíveis",
-                "Total Diferença",
-                "Total Quantidade Total",
-                "Total Volume Total",
-                "Total Volumetria Máxima"
-            ]
-            st.dataframe(resumo_geral, use_container_width=True)
-            buffer_geral = io.BytesIO()
-            with pd.ExcelWriter(buffer_geral, engine="xlsxwriter") as writer:
-                resumo_geral.to_excel(writer, sheet_name="Resumo Geral", index=False)
-            st.download_button(
-                label="📥 Baixar Resumo Geral",
-                data=buffer_geral.getvalue(),
-                file_name="Resumo_Geral_Simulacao.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-            # --- Exibe Resumo de Erros ---
-            st.subheader("🚨 Resumo de Erros")
-            df_erros = df_resultado[df_resultado["Bins_Necessarias"].astype(str).str.contains("Erro")]
-            if not df_erros.empty:
-                st.dataframe(df_erros, use_container_width=True)
-                buffer_erros = io.BytesIO()
-                with pd.ExcelWriter(buffer_erros, engine="xlsxwriter") as writer:
-                    df_erros.to_excel(writer, sheet_name="Erros", index=False)
-                st.download_button(
-                    label="📥 Baixar Erros",
-                    data=buffer_erros.getvalue(),
-                    file_name="Erros_Simulacao.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-            else:
-                st.info("✅ Nenhum erro encontrado na simulação.")
+ 
             # --- Exibe Resumo de Linhas Processadas ---
             st.markdown("---")
             st.subheader("📊 Resumo de Linhas Processadas")
@@ -406,41 +321,9 @@ if not st.session_state["simulando"]:
 
             st.session_state["simulando"] = False
 
-        except FileNotFoundError:
-            st.session_state["simulando"] = False
-            st.error("❌ Arquivo não encontrado. Por favor, verifique o nome do arquivo e tente novamente.")
-        except pd.errors.EmptyDataError:
-            st.session_state["simulando"] = False
-            st.error("❌ O arquivo está vazio. Por favor, forneça um arquivo válido.")
-        except pd.errors.ParserError:
-            st.session_state["simulando"] = False
-            st.error("❌ Erro ao analisar o arquivo. Verifique se ele está no formato correto (.xlsx).")
-        except sqlite3.Error as e:
-            st.session_state["simulando"] = False
-            st.error(f"❌ Erro ao acessar o banco de dados: {e}")
-        except KeyError as e:
-            st.session_state["simulando"] = False
-            st.error(f"❌ Coluna ausente no arquivo: {e}. Verifique se o arquivo contém todas as colunas necessárias.")
-        except ValueError as e:
-            st.session_state["simulando"] = False
-            st.error(f"❌ Erro de valor: {e}. Verifique os dados do arquivo.")
-        except TypeError as e:
-            st.session_state["simulando"] = False
-            st.error(f"❌ Erro de tipo: {e}. Verifique os tipos de dados no arquivo.")
-        except MemoryError:
-            st.session_state["simulando"] = False
-            st.error("❌ Memória insuficiente para processar o arquivo. Tente reduzir o tamanho do arquivo ou aumentar a memória disponível.")
-        except KeyboardInterrupt:
-            st.session_state["simulando"] = False
-            st.error("❌ Simulação interrompida pelo usuário.")
         except Exception as e:
             st.session_state["simulando"] = False
             st.error(f"Erro no processamento: {e}")
-        finally:
-            st.session_state["simulando"] = False
-else:
-    st.warning("🔄 Simulação em andamento. Por favor, aguarde a conclusão.")
-# --- Fim do upload do arquivo ---
 
 # --- Rodapé ---
 st.markdown("---")
