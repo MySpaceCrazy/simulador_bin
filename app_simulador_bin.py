@@ -46,7 +46,6 @@ st.set_page_config(
 
 )
 
-#st.title("📦 Simulador de Quantidade de Bins por Posição de Picking")
 st.markdown(
     '''
     <div style="display: flex; align-items: center;">
@@ -61,6 +60,8 @@ st.markdown(
 arquivo = st.file_uploader("📂 Selecionar arquivo de simulação (.xlsx)", type=["xlsx"])
 
 if arquivo:
+    st.warning("⚠️ A simulação levará alguns minutos. Tempo médio estimado: 10 minutos a cada 200.000 linhas. Aguarde...")
+
     try:
         inicio_tempo = time.time()
         df_base = pd.read_excel(arquivo, sheet_name="base_item_pacotes")
