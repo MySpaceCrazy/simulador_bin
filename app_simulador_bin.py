@@ -39,8 +39,23 @@ conn.close()
 print("✅ Banco logistica.db atualizado com sucesso.")
 
 # --- Configuração inicial ---
-st.set_page_config(page_title="Simulador de Bins de Picking", page_icon="📦", layout="wide")
-st.title("📦 Simulador de Quantidade de Bins por Posição de Picking")
+st.set_page_config(
+    page_title="Simulador de Bins",
+    page_icon="https://raw.githubusercontent.com/MySpaceCrazy/simulador_bin/refs/heads/main/Imagens/CP-6423-01.ico",
+    layout="wide"
+
+)
+
+#st.title("📦 Simulador de Quantidade de Bins por Posição de Picking")
+st.markdown(
+    '''
+    <div style="display: flex; align-items: center;">
+        <img src="https://raw.githubusercontent.com/MySpaceCrazy/simulador_bin/refs/heads/main/Imagens/CP-6423-01.ico" width="80" style="margin-right: 15px;">
+        <span style="font-size: 60px; font-weight: bold;">Simulador de Quantidade de Bins</span>
+    </div>
+    ''',
+    unsafe_allow_html=True
+)
 
 # --- Upload do arquivo do cliente ---
 arquivo = st.file_uploader("📂 Selecionar arquivo de simulação (.xlsx)", type=["xlsx"])
