@@ -289,24 +289,38 @@ if not st.session_state["simulando"]:
                 st.write(f"**Total Geral: {total_geral_ok} posições**")
 
             st.markdown("---")
- 
-            # --- Exibe Resumo de Linhas Processadas ---
-            st.markdown("---")
-            st.subheader("📊 Resumo de Linhas Processadas")
-            st.write(f"Total de linhas processadas: **{total_linhas_base}**")
-            st.write(f"Linhas simuladas sem erro: **{contador_sucesso}**")
-            st.write(f"Linhas com erro: **{total_linhas_base - contador_sucesso}**")
-            st.write("**Observação:** Linhas com erro foram registradas no relatório de erros.")
-            st.markdown("---")
+
             # --- Tempo total da simulação ---
             tempo_total = time.time() - inicio_tempo
             tempo_formatado = str(datetime.timedelta(seconds=int(tempo_total)))
 
             st.success("✅ Simulação concluída com sucesso!")
+            
+            # --- Exibe Resumo de Erros ---
+            st.subheader("🚨 Resumo de Erros")
+            df_erros = df_resultado[df_resultado["Bins_Necessarias"].astype(str).str.contains("Erro")]
+            if not df_erros.empty:
+                st.dataframe(df_erros, use_container_width=True)
+                buffer_erros = io.BytesIO()
+                with pd.ExcelWriter(buffer_erros, engine="xlsxwriter") as writer:
+                    df_erros.to_excel(writer, sheet_name="Erros", index=False)
+                st.download_button(
+                    label="📥 Baixar Erros",
+                    data=buffer_erros.getvalue(),
+                    file_name="Erros_Simulacao.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            else:
+                st.info("✅ Nenhum erro encontrado na simulação.")
+
+            # --- Exibe Resumo de Linhas Processadas ---
+            st.markdown("---")
+            st.subheader("📊 Resumo de Linhas Processadas")
             st.write(f"⏱️ Tempo total da simulação: **{tempo_formatado}**")
             st.write(f"📄 Total de linhas da base: **{total_linhas_base}**")
             st.write(f"✔️ Linhas simuladas sem erro: **{contador_sucesso}**")
-
+            st.write(f"❌ Linhas com erro: **{total_linhas_base - contador_sucesso}**")
+            st.write("**Observação:** Linhas com erro foram registradas no relatório de erros.")
             st.session_state["simulando"] = False
 
         except Exception as e:
