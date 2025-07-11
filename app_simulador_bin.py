@@ -57,7 +57,6 @@ st.markdown(
 )
 
 # --- Upload do arquivo do cliente ---
-# Definindo estado inicial
 if "simulando" not in st.session_state:
     st.session_state["simulando"] = False
 
