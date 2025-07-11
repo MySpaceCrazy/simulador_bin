@@ -299,7 +299,6 @@ if arquivo:
         st.write(f"📄 Total de linhas da base: **{total_linhas_base}**")
         st.write(f"✔️ Linhas simuladas sem erro: **{contador_sucesso}**")
 
-        # Quando terminar, some o aviso
         st.session_state["simulando"] = False
 
     except Exception as e:
