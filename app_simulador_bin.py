@@ -288,8 +288,59 @@ if not st.session_state["simulando"]:
                 st.write(f"**Total Geral: {total_geral_ok} posições**")
 
             st.markdown("---")
-            st.success("✅ Simulação concluída com sucesso!")
-
+            # --- Exibe Resumo Geral ---
+            st.subheader("📊 Resumo Geral da Simulação")
+            resumo_geral = df_resumo.groupby("Descrição - estrutura").agg(
+                Total_Bins_Necessarias=("Bins_Necessarias", "sum"),
+                Total_Bins_Disponiveis=("Bins_Disponiveis", "sum"),
+                Total_Diferenca=("Diferença", "sum"),
+                Total_Quantidade_Total=("Quantidade_Total", "sum"),
+                Total_Volume_Total=("Volume_Total", "sum"),
+                Total_Volumetria_Maxima=("Volumetria_Máxima", "sum")
+            ).reset_index()
+            resumo_geral.columns = [
+                "Descrição - estrutura",
+                "Total Bins Necessárias",
+                "Total Bins Disponíveis",
+                "Total Diferença",
+                "Total Quantidade Total",
+                "Total Volume Total",
+                "Total Volumetria Máxima"
+            ]
+            st.dataframe(resumo_geral, use_container_width=True)
+            buffer_geral = io.BytesIO()
+            with pd.ExcelWriter(buffer_geral, engine="xlsxwriter") as writer:
+                resumo_geral.to_excel(writer, sheet_name="Resumo Geral", index=False)
+            st.download_button(
+                label="📥 Baixar Resumo Geral",
+                data=buffer_geral.getvalue(),
+                file_name="Resumo_Geral_Simulacao.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+            # --- Exibe Resumo de Erros ---
+            st.subheader("🚨 Resumo de Erros")
+            df_erros = df_resultado[df_resultado["Bins_Necessarias"].astype(str).str.contains("Erro")]
+            if not df_erros.empty:
+                st.dataframe(df_erros, use_container_width=True)
+                buffer_erros = io.BytesIO()
+                with pd.ExcelWriter(buffer_erros, engine="xlsxwriter") as writer:
+                    df_erros.to_excel(writer, sheet_name="Erros", index=False)
+                st.download_button(
+                    label="📥 Baixar Erros",
+                    data=buffer_erros.getvalue(),
+                    file_name="Erros_Simulacao.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            else:
+                st.info("✅ Nenhum erro encontrado na simulação.")
+            # --- Exibe Resumo de Linhas Processadas ---
+            st.markdown("---")
+            st.subheader("📊 Resumo de Linhas Processadas")
+            st.write(f"Total de linhas processadas: **{total_linhas_base}**")
+            st.write(f"Linhas simuladas sem erro: **{contador_sucesso}**")
+            st.write(f"Linhas com erro: **{total_linhas_base - contador_sucesso}**")
+            st.write("**Observação:** Linhas com erro foram registradas no relatório de erros.")
+            st.markdown("---")
             # --- Tempo total da simulação ---
             tempo_total = time.time() - inicio_tempo
             tempo_formatado = str(datetime.timedelta(seconds=int(tempo_total)))
