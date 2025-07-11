@@ -62,13 +62,15 @@ if "simulando" not in st.session_state:
 
 arquivo = st.file_uploader("📂 Selecionar arquivo de simulação (.xlsx)", type=["xlsx"])
 
+
 if arquivo and not st.session_state["simulando"]:
     st.warning("⚠️ A simulação levará alguns minutos. Tempo médio estimado: 10 minutos a cada 200.000 linhas. Aguarde...")
     st.markdown("---")
-
-    if arquivo:
+    if st.button("▶️ Iniciar Simulação"):
         st.session_state["simulando"] = True
 
+# --- Início da Simulação ---
+    if st.session_state["simulando"]:
         try:
             inicio_tempo = time.time()
             df_base = pd.read_excel(arquivo, sheet_name="base_item_pacotes")
