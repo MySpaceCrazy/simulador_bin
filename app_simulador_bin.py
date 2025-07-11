@@ -294,9 +294,9 @@ if not st.session_state["simulando"]:
                 Total_Bins_Necessarias=("Bins_Necessarias", "sum"),
                 Total_Bins_Disponiveis=("Bins_Disponiveis", "sum"),
                 Total_Diferenca=("Diferença", "sum"),
-                Total_Quantidade_Total=("Quantidade_Total", "sum"),
-                Total_Volume_Total=("Volume_Total", "sum"),
-                Total_Volumetria_Maxima=("Volumetria_Máxima", "sum")
+                Total_Quantidade_Total=("Quantidade Total", "sum"),
+                Total_Volume_Total=("Volume Total", "sum"),
+                Total_Volumetria_Maxima=("Volumetria Máxima", "sum")
             ).reset_index()
             resumo_geral.columns = [
                 "Descrição - estrutura",
