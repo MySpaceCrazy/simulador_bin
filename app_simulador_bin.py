@@ -65,19 +65,7 @@ arquivo = st.file_uploader("📂 Selecionar arquivo de simulação (.xlsx)", typ
 if not st.session_state["simulando"]:
     st.warning("⚠️ A simulação levará alguns minutos. Tempo médio estimado: 10 minutos a cada 200.000 linhas. Aguarde...")
     st.markdown("---")
-    st.markdown("""
-    <style>
-    .loading-message {
-        font-size: 1.2rem;
-        color: #ff9800;
-        font-weight: bold;
-        text-align: center;
-    }
-    </style>
-    <div class="loading-message">
-        <p>🔄 Processando arquivo, aguarde...</p>
-    </div>
-    """, unsafe_allow_html=True)
+
     if arquivo:
         st.session_state["simulando"] = True
 
