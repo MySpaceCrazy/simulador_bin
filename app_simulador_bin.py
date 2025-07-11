@@ -230,7 +230,13 @@ if arquivo and not st.session_state["simulando"]:
             ]
 
             # AGRUPAMENTO para consolidar duplicatas
-            df_resumo_agrupado = df_resumo.groupby([
+            # --- Separa erros do dataframe normal ---
+            df_erros_resumo = df_resumo[df_resumo["Bins_Necessarias"].astype(str).str.contains("Erro", na=False)]
+            df_ok_resumo = df_resumo[~df_resumo["Bins_Necessarias"].astype(str).str.contains("Erro", na=False)]
+
+
+            # --- Agrupa apenas as linhas sem erro ---
+            df_ok_resumo_agrupado = df_ok_resumo.groupby([
                 "Estrutura", "Descrição - estrutura", "Posição", "Produto", "Descrição – produto", "Tipo_Bin"
             ], as_index=False).agg({
                 "Bins_Necessarias": "sum",
@@ -241,8 +247,8 @@ if arquivo and not st.session_state["simulando"]:
                 "Volumetria Máxima": "sum"
             })
 
-            # Agora use df_resumo_agrupado nas exibições e downloads
- 
+            # --- Junta as linhas com erro no final ---
+            df_resumo_agrupado = pd.concat([df_ok_resumo_agrupado, df_erros_resumo], ignore_index=True)
 
             # --- Exibe e download Detalhado ---
             st.subheader("📊 Detalhado por Loja, Estrutura e Produto")
@@ -275,7 +281,6 @@ if arquivo and not st.session_state["simulando"]:
                 file_name="Resumo_Produto_Estrutura.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
-
 
             # --- Calcula Resumo - Posições Não Atendem ---
             df_nao_atendem = df_resumo[df_resumo["Diferença"].apply(lambda x: pd.to_numeric(x, errors='coerce')).lt(0, fill_value=False)]
