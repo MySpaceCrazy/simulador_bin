@@ -306,7 +306,7 @@ if arquivo and not st.session_state["simulando"]:
             st.write(f"✔️ Linhas simuladas sem erro: **{contador_sucesso}**")
             st.write(f"❌ Linhas com erro: **{total_linhas_base - contador_sucesso}**")
             st.write("**Observação:** Linhas com erro foram registradas no relatório de erros.")
-            st.session_state["simulando"] = False
+            st.markdown("---")
 
             # --- Exibe Resumo de Erros ---
             st.subheader("🚨 Resumo de Erros")
