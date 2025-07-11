@@ -62,7 +62,7 @@ if "simulando" not in st.session_state:
 
 arquivo = st.file_uploader("📂 Selecionar arquivo de simulação (.xlsx)", type=["xlsx"])
 
-if not st.session_state["simulando"]:
+if arquivo and not st.session_state["simulando"]:
     st.warning("⚠️ A simulação levará alguns minutos. Tempo médio estimado: 10 minutos a cada 200.000 linhas. Aguarde...")
     st.markdown("---")
 
@@ -323,13 +323,10 @@ if not st.session_state["simulando"]:
             else:
                 st.info("✅ Nenhum erro encontrado na simulação.")
             
-            st.session_state["simulando"] = False
-            st.rerun()
-
         except Exception as e:
-            st.session_state["simulando"] = False
             st.error(f"Erro no processamento: {e}")
-            st.rerun()
+        finally:
+            st.session_state["simulando"] = False
 
 # --- Rodapé ---
 st.markdown("---")
