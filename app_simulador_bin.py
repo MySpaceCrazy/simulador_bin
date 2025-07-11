@@ -303,6 +303,7 @@ if arquivo:
         st.session_state["simulando"] = False
 
     except Exception as e:
+        st.session_state["simulando"] = False
         st.error(f"Erro no processamento: {e}")
 
 # --- Rodapé ---
