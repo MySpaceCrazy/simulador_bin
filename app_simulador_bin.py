@@ -240,7 +240,7 @@ if arquivo and not st.session_state["simulando"]:
                 "Estrutura", "Descrição - estrutura", "Posição", "Produto", "Descrição – produto", "Tipo_Bin"
             ], as_index=False).agg({
                 "Bins_Necessarias": "sum",
-                "Bins_Disponiveis": "sum",
+                "Bins_Disponiveis": "first",
                 "Diferença": "sum",
                 "Quantidade Total": "sum",
                 "Volume Total": "sum",
