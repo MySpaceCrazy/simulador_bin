@@ -236,6 +236,14 @@ if st.session_state["simulando"]:
         df_ok_resumo_agrupado["Diferença"] = df_ok_resumo_agrupado["Bins_Disponiveis"] - df_ok_resumo_agrupado["Bins_Necessarias"]
         df_resumo_agrupado = pd.concat([df_ok_resumo_agrupado, df_erros_resumo], ignore_index=True)
 
+        # Reorganiza as colunas para colocar "Diferença" ao lado de "Bins_Disponiveis"
+        colunas_ordenadas = [
+            "Estrutura", "Descrição - estrutura", "Posição", "Produto", "Descrição – produto", 
+            "Tipo_Bin", "Bins_Necessarias", "Bins_Disponiveis", "Diferença",
+            "Quantidade Total", "Volume Total", "Volumetria Máxima"
+        ]
+        df_ok_resumo_agrupado = df_ok_resumo_agrupado[colunas_ordenadas]
+
         # --- Exibição e downloads ---
         st.subheader("📊 Detalhado por Loja, Estrutura e Produto")
         st.dataframe(df_resultado)
