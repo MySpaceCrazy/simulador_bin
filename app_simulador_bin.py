@@ -214,10 +214,26 @@ if st.session_state["simulando"]:
             "Tipo_Bin", "Bins_Necessarias", "Bins_Disponiveis", "Diferença",
             "Quantidade Total", "Volume Total", "Volumetria Máxima"
         ]
+        
+        # --- Adiciona coluna de Status (Erro / OK / Não Atende) ---
+        df_resumo["Status"] = df_resumo.apply(
+            lambda x: 
+                "Erro" if "Erro" in str(x["Bins_Necessarias"])
+                else ("OK" if pd.to_numeric(x["Diferença"], errors="coerce") >= 0 else "Não Atende"),
+            axis=1
+        )
 
         # Separa erros e consolida os dados
         df_erros_resumo = df_resumo[df_resumo["Bins_Necessarias"].astype(str).str.contains("Erro", na=False)]
         df_ok_resumo = df_resumo[~df_resumo["Bins_Necessarias"].astype(str).str.contains("Erro", na=False)]
+
+        # Converte colunas numéricas antes de agrupar
+        colunas_numericas_ok = [
+            "Bins_Necessarias", "Bins_Disponiveis", "Quantidade Total",
+            "Volume Total", "Volumetria Máxima"
+        ]
+        for col in colunas_numericas_ok:
+            df_ok_resumo[col] = pd.to_numeric(df_ok_resumo[col], errors="coerce").fillna(0)
 
         df_ok_resumo_agrupado = df_ok_resumo.groupby([
             "Estrutura", "Descrição - estrutura", "Posição", "Produto", "Descrição – produto", "Tipo_Bin"
