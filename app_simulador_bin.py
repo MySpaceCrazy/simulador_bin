@@ -289,11 +289,14 @@ if arquivo and not st.session_state["simulando"]:
             # --- Calcula Resumo - Posições Não Atendem e OK ---
             # Converte 'Diferença' para numérico
             df_resumo["Diferença"] = pd.to_numeric(df_resumo["Diferença"], errors="coerce").fillna(0)
-            # Mantém apenas as colunas essenciais para os resumos
-            colunas_validas = ["Descrição - estrutura", "Posição", "Diferença"]
-            # Remove duplicatas por posição + estrutura (só 1 entrada por posição)
-            df_resumo_dedup = df_resumo[colunas_validas].drop_duplicates()
-            # Separa em dois dataframes distintos
+            # Agrupa por posição e estrutura, e pega a menor diferença (caso haja múltiplos produtos na mesma posição)
+            df_resumo_dedup = (
+                df_resumo
+                .groupby(["Descrição - estrutura", "Posição"], as_index=False)
+                .agg({"Diferença": "min"})
+            )
+
+            # Separa posições que não atendem e que atendem
             df_nao_atendem = df_resumo_dedup[df_resumo_dedup["Diferença"] < 0]
             df_ok = df_resumo_dedup[df_resumo_dedup["Diferença"] >= 0]
             # Agrupa e conta posições distintas por estrutura
