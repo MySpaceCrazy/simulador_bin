@@ -302,6 +302,7 @@ if st.session_state["simulando"]:
         # Exibe tempo da simulação
         tempo_total = time.time() - inicio_tempo
         tempo_formatado = str(datetime.timedelta(seconds=int(tempo_total)))
+        st.markdown("---")
 
         # --- Exibe Resumo Geral da Simulação ---
         st.subheader("📊 Resumo Geral da Simulação")
@@ -372,6 +373,7 @@ if st.session_state["simulando"]:
             file_name="Resumo_Geral_Simulacao.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+        st.markdown("---")
 
         st.success("✅ Simulação concluída com sucesso!")
         st.subheader("📊 Resumo de Linhas Processadas")
@@ -379,7 +381,8 @@ if st.session_state["simulando"]:
         st.write(f"📄 Total de linhas da base: **{total_linhas_base}**")
         st.write(f"✔️ Linhas simuladas sem erro: **{contador_sucesso}**")
         st.write(f"❌ Linhas com erro: **{total_linhas_base - contador_sucesso}**")
-
+        st.markdown("---")
+        
         # Exibe erros, se houver
         st.subheader("🚨 Resumo de Erros")
         df_erros = df_resultado[df_resultado["Bins_Necessarias"].astype(str).str.contains("Erro")]
