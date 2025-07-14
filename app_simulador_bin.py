@@ -215,20 +215,6 @@ if st.session_state["simulando"]:
             "Quantidade Total", "Volume Total", "Volumetria Máxima"
         ]
         
-        # --- Adiciona coluna de Status (Erro / OK / Não Atende) ---
-        # Converte a coluna "Diferença" para numérico em uma nova coluna auxiliar
-        df_resumo["Diferença_num"] = pd.to_numeric(df_resumo["Diferença"], errors="coerce")
-
-        # Define a coluna de Status
-        df_resumo["Status"] = df_resumo.apply(
-            lambda x: (
-                "Erro" if "Erro" in str(x["Bins_Necessarias"])
-                else ("OK" if x["Diferença_num"] >= 0 else "Não Atende")
-            ),
-            axis=1
-        )
-
-
         # Separa erros e consolida os dados
         df_erros_resumo = df_resumo[df_resumo["Bins_Necessarias"].astype(str).str.contains("Erro", na=False)]
         df_ok_resumo = df_resumo[~df_resumo["Bins_Necessarias"].astype(str).str.contains("Erro", na=False)]
@@ -316,6 +302,53 @@ if st.session_state["simulando"]:
         # Exibe tempo da simulação
         tempo_total = time.time() - inicio_tempo
         tempo_formatado = str(datetime.timedelta(seconds=int(tempo_total)))
+
+        # --- Exibe Resumo Geral da Simulação ---
+        st.subheader("📊 Resumo Geral da Simulação")
+
+        # Garante que todas as colunas necessárias estão no tipo numérico
+        colunas_numericas = [
+            "Bins_Necessarias", "Bins_Disponiveis", "Diferença",
+            "Quantidade Total", "Volume Total", "Volumetria Máxima"
+        ]
+
+        for col in colunas_numericas:
+            df_ok_resumo_agrupado[col] = pd.to_numeric(df_ok_resumo_agrupado[col], errors="coerce").fillna(0)
+
+        # Geração do resumo geral
+        resumo_geral = df_ok_resumo_agrupado.groupby("Descrição - estrutura", as_index=False).agg({
+            "Bins_Necessarias": "sum",
+            "Bins_Disponiveis": "sum",
+            "Diferença": "sum",
+            "Quantidade Total": "sum",
+            "Volume Total": "sum",
+            "Volumetria Máxima": "sum"
+        })
+
+        # Renomeia colunas para exibição
+        resumo_geral.columns = [
+            "Descrição - estrutura",
+            "Total Bins Necessárias",
+            "Total Bins Disponíveis",
+            "Total Diferença",
+            "Total Quantidade Total",
+            "Total Volume Total",
+            "Total Volumetria Máxima"
+        ]
+
+        st.dataframe(resumo_geral, use_container_width=True)
+
+        # Geração do Excel
+        buffer_geral = io.BytesIO()
+        with pd.ExcelWriter(buffer_geral, engine="xlsxwriter") as writer:
+            resumo_geral.to_excel(writer, sheet_name="Resumo Geral", index=False)
+
+        st.download_button(
+            label="📥 Baixar Resumo Geral",
+            data=buffer_geral.getvalue(),
+            file_name="Resumo_Geral_Simulacao.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
         st.success("✅ Simulação concluída com sucesso!")
         st.subheader("📊 Resumo de Linhas Processadas")
