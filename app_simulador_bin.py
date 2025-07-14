@@ -225,7 +225,7 @@ if st.session_state["simulando"]:
             "Volume Total", "Volumetria Máxima"
         ]
         for col in colunas_numericas_ok:
-            df_ok_resumo[col] = pd.to_numeric(df_ok_resumo[col], errors="coerce").fillna(0)
+            df_ok_resumo.loc[:, col] = pd.to_numeric(df_ok_resumo[col], errors="coerce").fillna(0)
 
         df_ok_resumo_agrupado = df_ok_resumo.groupby([
             "Estrutura", "Descrição - estrutura", "Posição", "Produto", "Descrição – produto", "Tipo_Bin"
@@ -251,6 +251,19 @@ if st.session_state["simulando"]:
             "Quantidade Total", "Volume Total", "Volumetria Máxima"
         ]
         df_ok_resumo_agrupado = df_ok_resumo_agrupado[colunas_ordenadas]
+
+        # --- Função para formatação brasileira de números ---
+        def formatar_valor(valor):
+            try:
+                if pd.isna(valor):
+                    return "-"
+                elif isinstance(valor, int):
+                    return f"{valor:,}".replace(",", ".")
+                else:
+                    return f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            except:
+                return valor
+
 
         # --- Exibição e downloads ---
         st.subheader("📊 Detalhado por Loja, Estrutura e Produto")
@@ -350,18 +363,6 @@ if st.session_state["simulando"]:
             "Total Volume Total",
             "Total Volumetria Máxima"
         ]
-
-        # --- Formatação de colunas para exibição com ponto de milhar e vírgula decimal ---
-        def formatar_valor(valor):
-            try:
-                if pd.isna(valor):
-                    return "-"
-                elif isinstance(valor, int):
-                    return f"{valor:,}".replace(",", ".")
-                else:
-                    return f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-            except:
-                return valor
 
         resumo_geral_formatado = resumo_geral.copy()
         colunas_formatar = [
