@@ -241,11 +241,11 @@ if arquivo and not st.session_state["simulando"]:
             ], as_index=False).agg({
                 "Bins_Necessarias": "sum",
                 "Bins_Disponiveis": "first",
-                "Diferença": "sum",
                 "Quantidade Total": "sum",
                 "Volume Total": "sum",
                 "Volumetria Máxima": "sum"
             })
+            df_ok_resumo_agrupado["Diferença"] = df_ok_resumo_agrupado["Bins_Disponiveis"] - df_ok_resumo_agrupado["Bins_Necessarias"]
 
             # --- Junta as linhas com erro no final ---
             df_resumo_agrupado = pd.concat([df_ok_resumo_agrupado, df_erros_resumo], ignore_index=True)
@@ -286,24 +286,33 @@ if arquivo and not st.session_state["simulando"]:
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
-            # --- Calcula Resumo - Posições Não Atendem --- & OK ---
+            # --- Calcula Resumo - Posições Não Atendem e OK ---
+            # Converte 'Diferença' para numérico
             df_resumo["Diferença"] = pd.to_numeric(df_resumo["Diferença"], errors="coerce").fillna(0)
-
-            df_nao_atendem = df_resumo[df_resumo["Diferença"] < 0]
+            # Mantém apenas as colunas essenciais para os resumos
+            colunas_validas = ["Descrição - estrutura", "Posição", "Diferença"]
+            # Remove duplicatas por posição + estrutura (só 1 entrada por posição)
+            df_resumo_dedup = df_resumo[colunas_validas].drop_duplicates()
+            # Separa em dois dataframes distintos
+            df_nao_atendem = df_resumo_dedup[df_resumo_dedup["Diferença"] < 0]
+            df_ok = df_resumo_dedup[df_resumo_dedup["Diferença"] >= 0]
+            # Agrupa e conta posições distintas por estrutura
             resumo_nao_atendem = (
                 df_nao_atendem.groupby("Descrição - estrutura")["Posição"]
                 .nunique()
                 .reset_index(name="Posições - Não Atendem")
             )
-            total_geral_nao_atendem = resumo_nao_atendem["Posições - Não Atendem"].sum()
 
-            df_ok = df_resumo[df_resumo["Diferença"] >= 0]
             resumo_ok = (
                 df_ok.groupby("Descrição - estrutura")["Posição"]
                 .nunique()
                 .reset_index(name="Posições - OK")
             )
+
+            # Totais gerais
+            total_geral_nao_atendem = resumo_nao_atendem["Posições - Não Atendem"].sum()
             total_geral_ok = resumo_ok["Posições - OK"].sum()
+
 
             # --- Exibe os dois resumos lado a lado ---
             col1, col2 = st.columns(2)
