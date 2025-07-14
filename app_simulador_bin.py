@@ -287,14 +287,12 @@ if arquivo and not st.session_state["simulando"]:
             )
 
             # --- Calcula Resumo - Posições Não Atendem e OK ---
-            # Converte 'Diferença' para numérico
-            df_resumo["Diferença"] = pd.to_numeric(df_resumo["Diferença"], errors="coerce").fillna(0)
-            # Agrupa por posição e estrutura, e pega a menor diferença (caso haja múltiplos produtos na mesma posição)
-            df_resumo_dedup = (
-                df_resumo
-                .groupby(["Descrição - estrutura", "Posição"], as_index=False)
-                .agg({"Diferença": "min"})
-            )
+            # Filtra apenas as linhas válidas (sem erros) e onde Diferença é numérica
+            df_validos = df_resumo[~df_resumo["Bins_Necessarias"].astype(str).str.contains("Erro", na=False)].copy()
+            df_validos["Diferença"] = pd.to_numeric(df_validos["Diferença"], errors="coerce")
+
+            # Remove duplicatas por posição e estrutura para contar corretamente
+            df_resumo_dedup = df_validos[["Descrição - estrutura", "Posição", "Diferença"]].drop_duplicates()
 
             # Separa posições que não atendem e que atendem
             df_nao_atendem = df_resumo_dedup[df_resumo_dedup["Diferença"] < 0]
