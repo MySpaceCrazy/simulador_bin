@@ -216,11 +216,12 @@ if st.session_state["simulando"]:
         ]
         
         # --- Adiciona coluna de Status (Erro / OK / Não Atende) ---
-        df_resumo["Diferença_num"] = pd.to_numeric(df_resumo["Diferença"], errors="coerce")
+        df_resumo["Diferença"] = pd.to_numeric(df_resumo["Diferença"], errors="coerce")
+
         df_resumo["Status"] = df_resumo.apply(
             lambda x: (
                 "Erro" if "Erro" in str(x["Bins_Necessarias"])
-                else ("OK" if x["Diferença_num"] >= 0 else "Não Atende")
+                else ("OK" if x["Diferença"] >= 0 else "Não Atende")
             ),
             axis=1
         )
