@@ -294,45 +294,6 @@ if st.session_state["simulando"]:
         # Exibe tempo da simulação
         tempo_total = time.time() - inicio_tempo
         tempo_formatado = str(datetime.timedelta(seconds=int(tempo_total)))
-        
-        # --- Exibe Resumo Geral da Simulação ---
-        st.subheader("📊 Resumo Geral da Simulação")
-
-        resumo_geral = df_ok_resumo_agrupado.groupby("Descrição - estrutura", as_index=False).agg({
-            "Bins_Necessarias": "sum",
-            "Bins_Disponiveis": "sum",
-            "Diferença": "sum",
-            "Quantidade Total": "sum",
-            "Volume Total": "sum",
-            "Volumetria Máxima": "sum"
-        })
-
-        # Renomeia as colunas para título mais legível
-        resumo_geral.columns = [
-            "Descrição - estrutura",
-            "Total Bins Necessárias",
-            "Total Bins Disponíveis",
-            "Total Diferença",
-            "Total Quantidade Total",
-            "Total Volume Total",
-            "Total Volumetria Máxima"
-        ]
-
-        # Exibição do DataFrame
-        st.dataframe(resumo_geral, use_container_width=True)
-
-        # Exportação do Excel
-        buffer_geral = io.BytesIO()
-        with pd.ExcelWriter(buffer_geral, engine="xlsxwriter") as writer:
-            resumo_geral.to_excel(writer, sheet_name="Resumo Geral", index=False)
-
-        st.download_button(
-            label="📥 Baixar Resumo Geral",
-            data=buffer_geral.getvalue(),
-            file_name="Resumo_Geral_Simulacao.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-
 
         st.success("✅ Simulação concluída com sucesso!")
         st.subheader("📊 Resumo de Linhas Processadas")
