@@ -229,6 +229,10 @@ if st.session_state["simulando"]:
             "Volumetria Máxima": "sum"
         })
 
+        # Arredondamento de colunas numéricas para exibição
+        df_ok_resumo_agrupado["Volume Total"] = df_ok_resumo_agrupado["Volume Total"].round(2)
+        df_ok_resumo_agrupado["Volumetria Máxima"] = df_ok_resumo_agrupado["Volumetria Máxima"].round(2)
+
         df_ok_resumo_agrupado["Diferença"] = df_ok_resumo_agrupado["Bins_Disponiveis"] - df_ok_resumo_agrupado["Bins_Necessarias"]
         df_resumo_agrupado = pd.concat([df_ok_resumo_agrupado, df_erros_resumo], ignore_index=True)
 
