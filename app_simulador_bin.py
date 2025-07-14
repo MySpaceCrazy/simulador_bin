@@ -336,7 +336,30 @@ if st.session_state["simulando"]:
             "Total Volumetria Máxima"
         ]
 
-        st.dataframe(resumo_geral, use_container_width=True)
+        # --- Formatação de colunas para exibição com ponto de milhar e vírgula decimal ---
+        def formatar_valor(valor):
+            try:
+                if pd.isna(valor):
+                    return "-"
+                elif isinstance(valor, int):
+                    return f"{valor:,}".replace(",", ".")
+                else:
+                    return f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            except:
+                return valor
+
+        resumo_geral_formatado = resumo_geral.copy()
+        colunas_formatar = [
+            "Total Bins Necessárias", "Total Bins Disponíveis", "Total Diferença",
+            "Total Quantidade Total", "Total Volume Total", "Total Volumetria Máxima"
+        ]
+
+        for col in colunas_formatar:
+            resumo_geral_formatado[col] = resumo_geral_formatado[col].apply(formatar_valor)
+
+        # Exibição formatada
+        st.dataframe(resumo_geral_formatado, use_container_width=True)
+
 
         # Geração do Excel
         buffer_geral = io.BytesIO()
