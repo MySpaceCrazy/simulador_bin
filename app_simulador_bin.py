@@ -224,10 +224,14 @@ if st.session_state["simulando"]:
             "Bins_Necessarias", "Bins_Disponiveis", "Quantidade Total",
             "Volume Total", "Volumetria Máxima"
         ]
-        for col in colunas_numericas_ok:
-            df_ok_resumo.loc[:, col] = pd.to_numeric(df_ok_resumo[col], errors="coerce").fillna(0)
 
-        df_ok_resumo_agrupado = df_ok_resumo.groupby([
+        # Cria uma cópia segura para conversões numéricas
+        df_ok_resumo_numerico = df_ok_resumo.copy()
+
+        for col in colunas_numericas_ok:
+            df_ok_resumo_numerico.loc[:, col] = pd.to_numeric(df_ok_resumo_numerico[col], errors="coerce").fillna(0)
+
+        df_ok_resumo_agrupado = df_ok_resumo_numerico.groupby([
             "Estrutura", "Descrição - estrutura", "Posição", "Produto", "Descrição – produto", "Tipo_Bin"
         ], as_index=False).agg({
             "Bins_Necessarias": "sum",
