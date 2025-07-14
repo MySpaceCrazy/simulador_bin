@@ -242,9 +242,15 @@ if st.session_state["simulando"]:
         })
 
         # Arredondamento de colunas numéricas para exibição
-        df_ok_resumo_agrupado["Volume Total"] = df_ok_resumo_agrupado["Volume Total"].round(2)
-        df_ok_resumo_agrupado["Volumetria Máxima"] = df_ok_resumo_agrupado["Volumetria Máxima"].round(2)
+        # Garante que colunas estejam numéricas para subtração
+        df_ok_resumo_agrupado["Bins_Disponiveis"] = pd.to_numeric(df_ok_resumo_agrupado["Bins_Disponiveis"], errors="coerce").fillna(0)
+        df_ok_resumo_agrupado["Bins_Necessarias"] = pd.to_numeric(df_ok_resumo_agrupado["Bins_Necessarias"], errors="coerce").fillna(0)
 
+        # Arredondamento de colunas numéricas para exibição
+        df_ok_resumo_agrupado["Volume Total"] = pd.to_numeric(df_ok_resumo_agrupado["Volume Total"], errors="coerce").fillna(0).round(2)
+        df_ok_resumo_agrupado["Volumetria Máxima"] = pd.to_numeric(df_ok_resumo_agrupado["Volumetria Máxima"], errors="coerce").fillna(0).round(2)
+
+        # Subtração segura agora que tudo é numérico
         df_ok_resumo_agrupado["Diferença"] = df_ok_resumo_agrupado["Bins_Disponiveis"] - df_ok_resumo_agrupado["Bins_Necessarias"]
         df_resumo_agrupado = pd.concat([df_ok_resumo_agrupado, df_erros_resumo], ignore_index=True)
 
