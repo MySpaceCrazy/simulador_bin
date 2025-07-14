@@ -254,16 +254,30 @@ if st.session_state["simulando"]:
 
         # --- Exibição e downloads ---
         st.subheader("📊 Detalhado por Loja, Estrutura e Produto")
-        st.dataframe(df_resultado)
+
+        df_detalhado_formatado = df_resultado.copy()
+
+        for col in ["Bins_Necessarias", "Bins_Disponiveis", "Diferença", "Quantidade_Total", "Volume_Total", "Volumetria_Máxima"]:
+            df_detalhado_formatado[col] = df_detalhado_formatado[col].apply(formatar_valor)
+
+        st.dataframe(df_detalhado_formatado, use_container_width=True)
 
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
             df_resultado.to_excel(writer, sheet_name="Detalhado Bins", index=False)
 
         st.download_button("📥 Baixar Relatório Excel", data=buffer.getvalue(), file_name="Simulacao_Bins.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        st.markdown("---")
 
+        # --- Resumo por Produto e Estrutura ---
         st.subheader("📊 Resumo por Produto e Estrutura")
-        st.dataframe(df_resumo_agrupado)
+        
+        df_resumo_formatado = df_resumo_agrupado.copy()
+
+        for col in ["Bins_Necessarias", "Bins_Disponiveis", "Diferença", "Quantidade Total", "Volume Total", "Volumetria Máxima"]:
+            df_resumo_formatado[col] = df_resumo_formatado[col].apply(formatar_valor)
+
+        st.dataframe(df_resumo_formatado, use_container_width=True)
 
         buffer_resumo = io.BytesIO()
         with pd.ExcelWriter(buffer_resumo, engine="xlsxwriter") as writer:
@@ -382,7 +396,7 @@ if st.session_state["simulando"]:
         st.write(f"✔️ Linhas simuladas sem erro: **{contador_sucesso}**")
         st.write(f"❌ Linhas com erro: **{total_linhas_base - contador_sucesso}**")
         st.markdown("---")
-        
+
         # Exibe erros, se houver
         st.subheader("🚨 Resumo de Erros")
         df_erros = df_resultado[df_resultado["Bins_Necessarias"].astype(str).str.contains("Erro")]
