@@ -249,6 +249,9 @@ if arquivo and not st.session_state["simulando"]:
 
             # --- Junta as linhas com erro no final ---
             df_resumo_agrupado = pd.concat([df_ok_resumo_agrupado, df_erros_resumo], ignore_index=True)
+            df_resumo_agrupado["Volume Total"] = pd.to_numeric(df_resumo_agrupado["Volume Total"], errors="coerce").round(2)
+            df_resumo_agrupado["Volumetria Máxima"] = pd.to_numeric(df_resumo_agrupado["Volumetria Máxima"], errors="coerce").round(2)
+
 
             # --- Exibe e download Detalhado ---
             st.subheader("📊 Detalhado por Loja, Estrutura e Produto")
@@ -269,6 +272,7 @@ if arquivo and not st.session_state["simulando"]:
 
             # --- Exibe e download Resumo por Produto e Estrutura ---
             st.subheader("📊 Resumo por Produto e Estrutura")
+            df_resumo_agrupado["Diferença"] = pd.to_numeric(df_resumo_agrupado["Diferença"], errors="coerce")
             st.dataframe(df_resumo_agrupado)
 
             buffer_resumo = io.BytesIO()
@@ -282,8 +286,10 @@ if arquivo and not st.session_state["simulando"]:
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
-            # --- Calcula Resumo - Posições Não Atendem ---
-            df_nao_atendem = df_resumo[df_resumo["Diferença"].apply(lambda x: pd.to_numeric(x, errors='coerce')).lt(0, fill_value=False)]
+            # --- Calcula Resumo - Posições Não Atendem --- & OK ---
+            df_resumo["Diferença"] = pd.to_numeric(df_resumo["Diferença"], errors="coerce").fillna(0)
+
+            df_nao_atendem = df_resumo[df_resumo["Diferença"] < 0]
             resumo_nao_atendem = (
                 df_nao_atendem.groupby("Descrição - estrutura")["Posição"]
                 .nunique()
@@ -291,8 +297,7 @@ if arquivo and not st.session_state["simulando"]:
             )
             total_geral_nao_atendem = resumo_nao_atendem["Posições - Não Atendem"].sum()
 
-            # --- Calcula Resumo - Posições OK ---
-            df_ok = df_resumo[df_resumo["Diferença"].apply(lambda x: pd.to_numeric(x, errors='coerce')).ge(0, fill_value=False)]
+            df_ok = df_resumo[df_resumo["Diferença"] >= 0]
             resumo_ok = (
                 df_ok.groupby("Descrição - estrutura")["Posição"]
                 .nunique()
