@@ -288,16 +288,33 @@ if arquivo and not st.session_state["simulando"]:
 
             # --- Calcula Resumo - Posições Não Atendem e OK ---
             # Filtra apenas as linhas válidas (sem erros) e onde Diferença é numérica
-            df_validos = df_resumo[~df_resumo["Bins_Necessarias"].astype(str).str.contains("Erro", na=False)].copy()
-            df_validos["Diferença"] = pd.to_numeric(df_validos["Diferença"], errors="coerce")
+            # Filtra dados válidos
+            df_validos = df_resumo[
+                ~df_resumo["Bins_Necessarias"].astype(str).str.contains("Erro", na=False)
+            ].copy()
 
-            # Remove duplicatas por posição e estrutura para contar corretamente
-            df_resumo_dedup = df_validos[["Descrição - estrutura", "Posição", "Diferença"]].drop_duplicates()
+            # Converte para numérico
+            df_validos["Bins_Necessarias"] = pd.to_numeric(df_validos["Bins_Necessarias"], errors="coerce").fillna(0)
+            df_validos["Bins_Disponiveis"] = pd.to_numeric(df_validos["Bins_Disponiveis"], errors="coerce").fillna(0)
 
-            # Separa posições que não atendem e que atendem
-            df_nao_atendem = df_resumo_dedup[df_resumo_dedup["Diferença"] < 0]
-            df_ok = df_resumo_dedup[df_resumo_dedup["Diferença"] >= 0]
-            # Agrupa e conta posições distintas por estrutura
+            # Agrupa por posição e estrutura: soma bins necessárias e pega os disponíveis (fixos)
+            df_posicoes_check = df_validos.groupby(
+                ["Posição", "Descrição - estrutura"], as_index=False
+            ).agg({
+                "Bins_Necessarias": "sum",
+                "Bins_Disponiveis": "first"  # disponível é fixo por posição
+            })
+
+            # Classifica
+            df_posicoes_check["Status"] = df_posicoes_check.apply(
+                lambda x: "OK" if x["Bins_Disponiveis"] >= x["Bins_Necessarias"] else "Não Atende", axis=1
+            )
+
+            # Separa resumos
+            df_nao_atendem = df_posicoes_check[df_posicoes_check["Status"] == "Não Atende"]
+            df_ok = df_posicoes_check[df_posicoes_check["Status"] == "OK"]
+
+            # Agrupa por estrutura
             resumo_nao_atendem = (
                 df_nao_atendem.groupby("Descrição - estrutura")["Posição"]
                 .nunique()
@@ -313,7 +330,6 @@ if arquivo and not st.session_state["simulando"]:
             # Totais gerais
             total_geral_nao_atendem = resumo_nao_atendem["Posições - Não Atendem"].sum()
             total_geral_ok = resumo_ok["Posições - OK"].sum()
-
 
             # --- Exibe os dois resumos lado a lado ---
             col1, col2 = st.columns(2)
